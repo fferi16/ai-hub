@@ -59,9 +59,8 @@ if (-not $Repo -and (Test-Path "$root\.git")) {
   if ($url -match "github\.com[:/](.+?)(\.git)?$") { $Repo = $Matches[1] }
 }
 if ($Repo) {
-  if (-not $cfg.update) { $cfg | Add-Member -NotePropertyName update -NotePropertyValue ([pscustomobject]@{ repo = $Repo; check_daily = $true }) }
-  else { $cfg.update.repo = $Repo }
-  [IO.File]::WriteAllText($cfgPath, ($cfg | ConvertTo-Json -Depth 10), (New-Object Text.UTF8Encoding $false))
+  & $vpy "$root\installer\set_repo.py" $cfgPath $Repo | Out-Null
+  $cfg = Get-Content $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 if (-not (Test-Path "$root\.git")) {
   $skip = '^(\.venv|logs|out|\.git)\\|\\__pycache__\\|\.tested$|^config\.json$|^\.installed_files$|^unins\d{3}\.(exe|dat|msg)$'

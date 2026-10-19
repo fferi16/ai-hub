@@ -18,9 +18,7 @@ git -C $root archive --format=zip -o "$stage.zip" HEAD
 Expand-Archive "$stage.zip" $stage -Force
 Remove-Item "$stage.zip"
 # a kiadott példány frissítési forrása legyen a cél-repó
-$cfg = Get-Content "$stage\config.json" -Raw -Encoding UTF8 | ConvertFrom-Json
-$cfg.update.repo = $Repo
-[IO.File]::WriteAllText("$stage\config.json", ($cfg | ConvertTo-Json -Depth 10), (New-Object Text.UTF8Encoding $false))
+& "$root\.venv\Scripts\python.exe" "$PSScriptRoot\set_repo.py" "$stage\config.json" $Repo | Out-Null
 $out = "$root\installer\out"
 New-Item -ItemType Directory -Force $out | Out-Null
 & $iscc "/DAppVersion=$version" "/DAppRepo=$Repo" "/DSrc=$stage" "/O$out" "$PSScriptRoot\ai-hub.iss"

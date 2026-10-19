@@ -27,9 +27,7 @@ if (-not $exists) {
 git -C $root archive --format=zip -o "$work.zip" HEAD
 Expand-Archive "$work.zip" $work -Force
 Remove-Item "$work.zip"
-$cfg = Get-Content "$work\config.json" -Raw -Encoding UTF8 | ConvertFrom-Json
-$cfg.update.repo = $Repo
-[IO.File]::WriteAllText("$work\config.json", ($cfg | ConvertTo-Json -Depth 10), (New-Object Text.UTF8Encoding $false))
+& "$root\.venv\Scripts\python.exe" "$PSScriptRoot\set_repo.py" "$work\config.json" $Repo | Out-Null
 
 git -C $work add -A
 git -C $work -c user.name="fferi16" -c user.email="fferi16@users.noreply.github.com" commit -q -m "AI HUB v$version" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"

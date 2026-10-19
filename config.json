@@ -1,48 +1,48 @@
 {
-    "host":  "127.0.0.1",
-    "port":  8765,
-    "path":  "/mcp",
-    "max_output_chars":  4000,
-    "excerpt_chars":  600,
-    "approval_timeout_s":  120,
-    "tool_timeout_s":  120,
-    "levels":  [
-                   "read",
-                   "act",
-                   "danger"
-               ],
-    "hotkey":  "Ctrl+Alt+Shift+H",
-    "update":  {
-                   "repo":  "fferi16/ai-hub",
-                   "check_daily":  true
-               },
-    "plugins":  {
-                    "_probe":  {
-                                   "enabled":  true
-                               },
-                    "hello":  {
-                                  "enabled":  true
-                              },
-                    "look":  {
-                                 "enabled":  true
-                             },
-                    "media":  {
-                                  "enabled":  true
-                              },
-                    "office":  {
-                                   "enabled":  true
-                               },
-                    "pdf":  {
-                                "enabled":  true
-                            },
-                    "local":  {
-                                  "enabled":  true
-                              },
-                    "study":  {
-                                  "enabled":  true
-                              },
-                    "watch":  {
-                                  "enabled":  true
-                              }
-                }
+  "host": "127.0.0.1",
+  "port": 8765,
+  "path": "/mcp",
+  "max_output_chars": 4000,
+  "excerpt_chars": 600,
+  "approval_timeout_s": 120,
+  "tool_timeout_s": 120,
+  "levels": [
+    "read",
+    "act",
+    "danger"
+  ],
+  "hotkey": "Ctrl+Alt+Shift+H",
+  "update": {
+    "repo": "fferi16/ai-hub",
+    "check_daily": true
+  },
+  "plugins": {
+    "_probe": {
+      "enabled": true
+    },
+    "hello": {
+      "enabled": true
+    },
+    "look": {
+      "enabled": true
+    },
+    "media": {
+      "enabled": true
+    },
+    "office": {
+      "enabled": true
+    },
+    "pdf": {
+      "enabled": true
+    },
+    "local": {
+      "enabled": true
+    },
+    "study": {
+      "enabled": true
+    },
+    "watch": {
+      "enabled": true
+    }
+  }
 }
