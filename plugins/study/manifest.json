@@ -1,0 +1,11 @@
+{
+  "name": "study",
+  "version": "0.1.0",
+  "description": "Tanulás: Anki-pakli (.apkg) kártyákból, kártyák kinyerése a tanulójegyzet kérdés–válasz részeiből, gyakorló kvíz HTML-ben",
+  "tools": [
+    {"name": "study_cards_from_docx", "level": "act"},
+    {"name": "study_anki", "level": "act"},
+    {"name": "study_quiz", "level": "act"}
+  ],
+  "deps": ["genanki"]
+}

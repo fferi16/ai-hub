@@ -1,0 +1,5 @@
+[
+  {"tool": "probe_echo", "args": {"text": "árvíztűrő"}, "expect": {"ok": true, "text": "árvíztűrő"}},
+  {"tool": "probe_big", "args": {"n": 25}, "contains": "0123456789012345678901234"},
+  {"tool": "probe_danger", "args": {}}
+]

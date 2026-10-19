@@ -1,0 +1,339 @@
+[
+ {
+  "tool": "look_open",
+  "args": {
+   "target": "https://example.com"
+  },
+  "contains": "Learn more"
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "expect",
+     "text": "Example Domain"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true,
+   "backend": "web"
+  }
+ },
+ {
+  "tool": "look_snap",
+  "args": {},
+  "expect": {
+   "ok": true,
+   "kb": {
+    "$lt": 150
+   }
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "open",
+     "target": "data:text/html;charset=utf-8,<title>Urlap</title><label>Név <input id=n></label><button onclick=\"o.textContent='Szia '+n.value\">Küldés</button><p id=o></p>"
+    },
+    {
+     "do": "type",
+     "name": "Név",
+     "role": "input",
+     "text": "Feri"
+    },
+    {
+     "do": "click",
+     "name": "Küldés"
+    },
+    {
+     "do": "wait",
+     "for": "text",
+     "value": "Szia Feri"
+    },
+    {
+     "do": "expect",
+     "text": "Szia Feri"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true
+  }
+ },
+ {
+  "tool": "look_recipe",
+  "args": {
+   "action": "save",
+   "name": "teszt_urlap"
+  },
+  "expect": {
+   "ok": true
+  }
+ },
+ {
+  "tool": "look_recipe",
+  "args": {
+   "action": "run",
+   "name": "teszt_urlap"
+  },
+  "expect": {
+   "ok": true,
+   "recipe": "teszt_urlap"
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "open": "data:text/html;charset=utf-8,<title>Rovid</title><button onclick=\"setTimeout(()=>o.textContent='Kész 7',300)\">Indít</button><p id=o></p>"
+    },
+    {
+     "click": "Indít"
+    },
+    {
+     "wait": "Kész 7"
+    },
+    {
+     "expect": "Kész 7"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true,
+   "expect": [
+    {
+     "text": "Kész 7",
+     "found": true
+    }
+   ]
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "wait",
+     "value": 0.5
+    },
+    {
+     "wait": 1
+    },
+    {
+     "click": 1
+    }
+   ]
+  },
+  "expect": {
+   "ok": true
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "wait"
+    }
+   ]
+  },
+  "expect": {
+   "ok": false,
+   "do": "wait"
+  },
+  "contains": "value kell"
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "foo": 1
+    }
+   ]
+  },
+  "expect": {
+   "ok": false,
+   "step": 1
+  },
+  "contains": "hiányzik a 'do' mező"
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "key"
+    }
+   ]
+  },
+  "expect": {
+   "ok": false
+  },
+  "contains": "hiányzó mező a(z) key lépésben"
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "click",
+     "el": 99
+    }
+   ]
+  },
+  "expect": {
+   "ok": false
+  }
+ },
+ {
+  "tool": "look_open",
+  "args": {
+   "target": "notepad.exe \"C:\\HUB\\plugins\\look\\tests\\notepad_teszt.txt\""
+  },
+  "expect": {
+   "ok": true,
+   "backend": "win"
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "type",
+     "role": "input",
+     "text": " teszt",
+     "window": "notepad_teszt.txt"
+    },
+    {
+     "do": "expect",
+     "text": "szerkeszd teszt"
+    },
+    {
+     "do": "key",
+     "keys": "Control+Z",
+     "window": "notepad_teszt.txt"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true,
+   "backend": "win",
+   "expect": [
+    {
+     "text": "szerkeszd teszt",
+     "found": true
+    }
+   ]
+  }
+ },
+ {
+  "tool": "look_open",
+  "args": {
+   "target": "nincs_ilyen_ablak_xyz"
+  },
+  "expect": {
+   "ok": false
+  }
+ },
+ {
+  "tool": "look_open",
+  "args": {
+   "target": "data:text/html;charset=utf-8,<title>Rajz</title><body style='margin:0'><canvas id=c width=900 height=500></canvas><script>const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,900,500);x.fillStyle='black';x.font='48px Arial';x.fillText('Hello Canvas 42',60,120)</script>"
+  },
+  "expect": {
+   "ok": true,
+   "backend": "ocr"
+  },
+  "contains": "Hello Canvas 42"
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "click",
+     "name": "Hello Canvas"
+    },
+    {
+     "do": "expect",
+     "text": "Canvas 42"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true,
+   "backend": "ocr"
+  }
+ },
+ {
+  "tool": "look_snap",
+  "args": {},
+  "expect": {
+   "ok": true,
+   "kb": {
+    "$lt": 150
+   }
+  }
+ },
+ {
+  "tool": "look_open",
+  "args": {
+   "target": "data:text/html;charset=utf-8,<title>Teszt</title><body style='margin:40px;font:28px Arial'><h1>Beállítások</h1><div style='color:red;border:2px solid red;padding:10px'>Hiba: a fájl nem található</div>"
+  },
+  "expect": {
+   "ok": true,
+   "backend": "web"
+  }
+ },
+ {
+  "tool": "look_ask",
+  "args": {
+   "question": "Látszik hibaüzenet? Ha igen, mi a szövege?"
+  },
+  "expect": {
+   "ok": true,
+   "confidence": "high"
+  },
+  "contains": "nem található"
+ },
+ {
+  "tool": "look_ask",
+  "args": {
+   "question": "Látszik hibaüzenet?",
+   "decisive": true
+  },
+  "expect": {
+   "ok": true,
+   "escalate": true
+  }
+ },
+ {
+  "tool": "look_run",
+  "args": {
+   "steps": [
+    {
+     "do": "ask",
+     "q": "Mi a címsor szövege?"
+    }
+   ]
+  },
+  "expect": {
+   "ok": true
+  },
+  "contains": "Beállítások"
+ },
+ {
+  "tool": "look_close",
+  "args": {},
+  "expect": {
+   "ok": true
+  }
+ }
+]

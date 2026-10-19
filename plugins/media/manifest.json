@@ -1,0 +1,13 @@
+{
+  "name": "media",
+  "version": "0.1.0",
+  "description": "Videó/hang feldolgozás: leirat (faster-whisper, GPU), kulcsképkockák kinyerése tanulási jegyzethez",
+  "tools": [
+    {"name": "media_info", "level": "read"},
+    {"name": "media_transcribe", "level": "act"},
+    {"name": "media_frames", "level": "act"},
+    {"name": "media_job", "level": "read"},
+    {"name": "media_notify", "level": "act"}
+  ],
+  "deps": ["faster-whisper", "imageio-ffmpeg", "nvidia-cublas-cu12", "nvidia-cudnn-cu12", "Pillow"]
+}

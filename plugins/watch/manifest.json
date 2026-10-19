@@ -1,0 +1,13 @@
+{
+  "name": "watch",
+  "version": "0.1.0",
+  "description": "Mappafigyelő: új fájl érkezésekor automatikus művelet (pl. videó → leirat + képkockák + helyi összefoglaló), folyamatjelzővel",
+  "tools": [
+    {"name": "watch_add", "level": "act"},
+    {"name": "watch_list", "level": "read"},
+    {"name": "watch_remove", "level": "act"},
+    {"name": "watch_scan", "level": "act"},
+    {"name": "watch_events", "level": "read"}
+  ],
+  "deps": []
+}

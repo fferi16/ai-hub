@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+logs/
+out/
+plugins/*/.tested
+plugins/hello/
+installer/out/
+.installed_files
+plugins/*/tests/__pycache__/

@@ -1,0 +1,13 @@
+[
+  {"tool": "local_models", "args": {}, "expect": {"ok": true, "default": "qwen3:8b"}, "contains": "\"name\":\"qwen3:8b\""},
+  {"tool": "local_ask", "args": {"prompt": "Mennyi 2+3? Csak a számot írd, semmi mást.", "max_tokens": 20, "temperature": 0}, "expect": {"ok": true, "text": "5", "model": "qwen3:8b"}},
+  {"tool": "local_ask", "args": {"prompt": "Hogy mondják angolul: haj? Egy szóval válaszolj.", "max_tokens": 10, "temperature": 0}, "expect": {"ok": true}, "contains": "air"},
+  {"tool": "local_ask", "args": {"prompt": "szia", "model": "nincs-ilyen:1b"}, "expect": {"ok": false}, "contains": "nincs ilyen modell"},
+  {"tool": "local_ask", "args": {"prompt": "   "}, "expect": {"ok": false}, "contains": "üres prompt"},
+  {"tool": "local_summarize", "args": {"path": "C:\\nincs\\ilyen.txt"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "local_summarize", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\cases.json", "model": "nincs-ilyen:1b"}, "expect": {"ok": false}, "contains": "nincs ilyen modell"},
+  {"tool": "local_summarize", "args": {"path": "C:\\HUB\\plugins\\local\\plugin.py"}, "expect": {"ok": false}, "contains": "nem támogatott"},
+  {"tool": "local_summarize", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\minta.txt", "points": 3, "out": "C:\\HUB\\out\\local\\_test\\minta.md"}, "expect": {"ok": true}},
+  {"tool": "local_job", "args": {"job": "last", "wait_s": 100}, "expect": {"ok": true, "state": "done", "parts": 1, "md": "C:\\HUB\\out\\local\\_test\\minta.md"}},
+  {"tool": "local_job", "args": {"job": "nincs-ilyen"}, "expect": {"ok": false}, "contains": "nincs ilyen job"}
+]

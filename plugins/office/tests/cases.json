@@ -1,0 +1,20 @@
+[
+  {"tool": "office_to_pdf", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx", "out": "C:\\HUB\\out\\office\\_test\\minta.pdf", "save_docx": "C:\\HUB\\out\\office\\_test\\minta_frissitett.docx"}, "expect": {"ok": true, "pages": 1, "kb": {"$gt": 5}}},
+  {"tool": "office_docx_text", "args": {"path": "C:\\HUB\\out\\office\\_test\\minta_frissitett.docx"}, "contains": "Első fejezet"},
+  {"tool": "office_to_pdf", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\b.xlsx", "out": "C:\\HUB\\out\\office\\_test\\b.pdf"}, "expect": {"ok": true, "kb": {"$gt": 1}}},
+  {"tool": "office_to_pdf", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "out": "C:\\HUB\\out\\office\\_test\\rossz.txt"}, "expect": {"ok": false}, "contains": ".pdf legyen"},
+  {"tool": "office_to_pdf", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "save_docx": "C:\\x.docx"}, "expect": {"ok": false}, "contains": "csak Word"},
+  {"tool": "office_to_pdf", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\cases.json"}, "expect": {"ok": false}, "contains": "nem támogatott"},
+  {"tool": "office_to_pdf", "args": {"path": "C:\\nincs\\ilyen.docx"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "office_docx_text", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx"}, "expect": {"ok": true, "paragraphs": {"$gt": 3}}, "contains": "# Első fejezet"},
+  {"tool": "office_docx_text", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx"}, "contains": "Árvíztűrő tükörfúrógép & teszt."},
+  {"tool": "office_xl_sheets", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\b.xlsx"}, "expect": {"ok": true}, "contains": "\"name\":\"Új lap\""},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "formulas": true}, "expect": {"ok": true, "sheet": "Ajánlat", "cells": 12}, "contains": "\"D\":\"=B2*C2\""},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "cells": "A2:C2"}, "expect": {"ok": true, "rows": {"2": {"A": "Ablak", "B": 2, "C": 100}}}},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "cells": "C3"}, "expect": {"ok": true, "rows": {"3": {"C": 300}}}},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "max_cells": 3}, "expect": {"ok": true, "cells": 3, "truncated": true}},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "sheet": "Nincs"}, "expect": {"ok": false}, "contains": "nincs ilyen lap"},
+  {"tool": "office_xl_read", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "cells": "zz:??"}, "expect": {"ok": false}},
+  {"tool": "office_xl_diff", "args": {"path_a": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "path_b": "C:\\HUB\\plugins\\office\\tests\\b.xlsx", "formulas": true}, "expect": {"ok": true, "changed": 1, "only_in_b": ["Új lap"], "changes": [{"sheet": "Ajánlat", "cell": "C2", "a": 100, "b": 120}]}},
+  {"tool": "office_xl_diff", "args": {"path_a": "C:\\HUB\\plugins\\office\\tests\\a.xlsx", "path_b": "C:\\HUB\\plugins\\office\\tests\\a.xlsx"}, "expect": {"ok": true, "changed": 0}}
+]

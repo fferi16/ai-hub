@@ -1,0 +1,12 @@
+[
+  {"tool": "study_cards_from_docx", "args": {"path": "C:\\HUB\\plugins\\study\\tests\\minta.docx", "out": "C:\\HUB\\out\\study\\_test\\kartyak.json"}, "expect": {"ok": true, "cards": 4, "by_tag": {"Gyorsismétlő": 1, "1. A szőr": 2, "2. A haj": 1}}},
+  {"tool": "study_cards_from_docx", "args": {"path": "C:\\HUB\\plugins\\study\\tests\\minta.docx", "out": "C:\\HUB\\out\\study\\_test\\kartyak.json"}, "contains": "\"front\":\"A haj összetétele\",\"back\":\"97% keratin + 3% víz\""},
+  {"tool": "study_cards_from_docx", "args": {"path": "C:\\nincs.docx"}, "expect": {"ok": false}},
+  {"tool": "study_anki", "args": {"deck": "Teszt pakli", "cards_path": "C:\\HUB\\out\\study\\_test\\kartyak.json", "out": "C:\\HUB\\out\\study\\_test\\teszt.apkg"}, "expect": {"ok": true, "cards": 4, "kb": {"$gt": 1}}},
+  {"tool": "study_anki", "args": {"deck": "Inline", "cards": "[{\"front\":\"**NH₃**?\",\"back\":\"ammónia\",\"tags\":[\"5. fejezet\"]}]", "out": "C:\\HUB\\out\\study\\_test\\inline.apkg"}, "expect": {"ok": true, "cards": 1}},
+  {"tool": "study_anki", "args": {"deck": "X", "cards": "[{\"front\":\"csak eleje\"}]"}, "expect": {"ok": false}, "contains": "nincs érvényes kártya"},
+  {"tool": "study_anki", "args": {"deck": "X", "cards": "nem json"}, "expect": {"ok": false}, "contains": "nem olvashatók"},
+  {"tool": "study_anki", "args": {"deck": " ", "cards": "[{\"front\":\"a\",\"back\":\"b\"}]"}, "expect": {"ok": false}, "contains": "adj nevet"},
+  {"tool": "study_quiz", "args": {"title": "Teszt kvíz", "cards_path": "C:\\HUB\\out\\study\\_test\\kartyak.json", "out": "C:\\HUB\\out\\study\\_test\\kviz.html"}, "expect": {"ok": true, "cards": 4}},
+  {"tool": "study_quiz", "args": {"title": "<script>x</script>", "cards": "[{\"front\":\"</script><b>\",\"back\":\"b\"}]", "out": "C:\\HUB\\out\\study\\_test\\xss.html"}, "expect": {"ok": true, "cards": 1}}
+]

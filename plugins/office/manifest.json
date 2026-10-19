@@ -1,0 +1,13 @@
+{
+  "name": "office",
+  "version": "0.1.0",
+  "description": "Word/Excel/PowerPoint: megbízható PDF-export (elakadásvédelemmel), Excel-olvasás és cellaszintű összehasonlítás, Word-szöveg",
+  "tools": [
+    {"name": "office_to_pdf", "level": "act"},
+    {"name": "office_xl_sheets", "level": "read"},
+    {"name": "office_xl_read", "level": "read"},
+    {"name": "office_xl_diff", "level": "read"},
+    {"name": "office_docx_text", "level": "read"}
+  ],
+  "deps": ["openpyxl", "pywin32"]
+}

@@ -1,0 +1,14 @@
+[
+  {"tool": "media_info", "args": {"path": "C:\\HUB\\plugins\\media\\tests\\fixture.mp4"}, "expect": {"ok": true, "video": "h264 320x240", "audio": "aac", "duration_s": {"$gt": 2}}},
+  {"tool": "media_info", "args": {"path": "C:\\nincs\\ilyen.mp4"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "media_job", "args": {"job": "nemletezo-job"}, "expect": {"ok": false}, "contains": "nincs ilyen job"},
+  {"tool": "media_job", "args": {"job": "..\\..\\x"}, "expect": {"ok": false}},
+  {"tool": "media_frames", "args": {"path": "C:\\HUB\\plugins\\media\\tests\\fixture.mp4", "every_s": 1, "width": 160, "out_dir": "C:\\HUB\\out\\media\\_test\\frames"}, "expect": {"ok": true}},
+  {"tool": "media_job", "args": {"job": "last", "wait_s": 60}, "expect": {"ok": true, "state": "done", "kept": 2}},
+  {"tool": "media_transcribe", "args": {"path": "C:\\HUB\\plugins\\media\\tests\\fixture.mp4", "lang": "en", "model": "tiny", "out_dir": "C:\\HUB\\out\\media\\_test"}, "expect": {"ok": true}},
+  {"tool": "media_job", "args": {"job": "last", "wait_s": 100}, "expect": {"ok": true, "state": "done", "lang": "en", "segments": {"$gt": 0}}},
+  {"tool": "media_notify", "args": {"job": "last", "dry": true}, "expect": {"ok": true}, "contains": "watching"},
+  {"tool": "media_notify", "args": {"job": "nemletezo-job", "dry": true}, "expect": {"ok": false}, "contains": "nincs figyelhető job"},
+  {"tool": "media_notify", "args": {"job": "..\\x", "dry": true}, "expect": {"ok": false}},
+  {"tool": "media_transcribe", "args": {"path": "C:\\nincs\\ilyen.mp4"}, "expect": {"ok": false}}
+]

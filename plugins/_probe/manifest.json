@@ -1,0 +1,11 @@
+{
+  "name": "_probe",
+  "version": "0.1.0",
+  "description": "Próba-eszközök a Hub ellenőrzéséhez (jóváhagyás, levágás)",
+  "tools": [
+    {"name": "probe_echo",   "level": "read"},
+    {"name": "probe_big",    "level": "read"},
+    {"name": "probe_danger", "level": "danger"}
+  ],
+  "deps": []
+}

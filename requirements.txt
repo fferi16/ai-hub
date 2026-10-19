@@ -1,0 +1,6 @@
+mcp==1.30.0
+uvicorn
+pystray
+Pillow
+keyring
+windows-toasts

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+  :root { --bg:#faf6f8; --card:#ffffff; --ink:#2b1f25; --muted:#7a6870; --accent:#8a3b5c; --ok:#2f8a57; --bad:#c0392b; --line:#e7dbe1; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1b1418; --card:#271d23; --ink:#f3eaee; --muted:#b19fa8; --accent:#d0628f; --ok:#4caf7a; --bad:#e05a4f; --line:#3d3037; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 "Segoe UI", system-ui, sans-serif; }
+  main { max-width:680px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.35rem; margin:0 0 4px; color:var(--accent); }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:12px 0; }
+  select, button { font:inherit; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:8px 12px; }
+  button { cursor:pointer; }
+  .progress { height:8px; background:var(--line); border-radius:6px; overflow:hidden; margin:6px 0 4px; }
+  .progress > div { height:100%; width:0; background:var(--accent); transition:width .25s; }
+  .meta { color:var(--muted); font-size:.9rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; min-height:230px; margin-top:12px;
+          box-shadow:0 4px 18px rgba(0,0,0,.06); cursor:pointer; user-select:none; }
+  .tag { display:inline-block; font-size:.78rem; color:var(--accent); border:1px solid var(--line); border-radius:999px; padding:1px 9px; margin-bottom:10px; }
+  .q { font-weight:600; font-size:1.12rem; }
+  .a { margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); display:none; }
+  .card.open .a { display:block; }
+  .hint { color:var(--muted); font-size:.85rem; margin-top:16px; }
+  .card.open .hint { display:none; }
+  .answer { display:none; gap:10px; margin-top:12px; }
+  .answer.show { display:flex; }
+  .answer button { flex:1; padding:12px; font-weight:600; color:#fff; border:none; }
+  .yes { background:var(--ok); } .no { background:var(--bad); }
+  .done { text-align:center; padding:40px 10px; }
+  .done b { font-size:2rem; color:var(--accent); display:block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>__TITLE__</h1>
+  <div class="meta" id="sub"></div>
+  <div class="bar">
+    <select id="tag" aria-label="Fejezet"></select>
+    <button id="shuffle" type="button">Keverés</button>
+    <button id="restart" type="button">Újrakezdés</button>
+  </div>
+  <div class="progress"><div id="pbar"></div></div>
+  <div class="meta" id="count"></div>
+  <div id="stage"></div>
+  <div class="answer" id="answer">
+    <button class="no" id="no" type="button">Nem tudtam ↺</button>
+    <button class="yes" id="yes" type="button">Tudtam ✓</button>
+  </div>
+</main>
+<script>
+const CARDS = __CARDS__;
+const $ = (id) => document.getElementById(id);
+let queue = [], total = 0, known = 0, missed = 0;
+const tags = [...new Set(CARDS.flatMap(c => c.t))];
+$("tag").innerHTML = `<option value="">Összes fejezet (${CARDS.length})</option>` +
+  tags.map(t => `<option>${t.replace(/[<&]/g, "")}</option>`).join("");
+$("sub").textContent = `${CARDS.length} kártya · kattints a kártyára a válaszért`;
+function start(shuffle) {
+  const t = $("tag").value;
+  queue = CARDS.filter(c => !t || c.t.includes(t));
+  if (shuffle) for (let i = queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [queue[i], queue[j]] = [queue[j], queue[i]]; }
+  total = queue.length; known = 0; missed = 0; show();
+}
+function show() {
+  $("pbar").style.width = total ? (known / total * 100) + "%" : "0";
+  $("count").textContent = `Tudott: ${known} / ${total} · még ${queue.length} · ismétlésre került: ${missed}`;
+  $("answer").classList.remove("show");
+  if (!queue.length) {
+    $("stage").innerHTML = `<div class="card done"><b>Kész! 🎉</b>${total} kártyából ${total} megy · ${missed} ismétléssel.<br><br>Válassz másik fejezetet, vagy kezdd újra.</div>`;
+    return;
+  }
+  const c = queue[0];
+  $("stage").innerHTML = `<div class="card" id="card" tabindex="0">${c.t.map(t => `<span class="tag">${t}</span>`).join(" ")}
+    <div class="q">${c.f}</div><div class="a">${c.b}</div><div class="hint">Kattints vagy nyomd meg a szóközt a válaszért.</div></div>`;
+  $("card").onclick = flip;
+}
+function flip() { const el = $("card"); if (el && !el.classList.contains("open")) { el.classList.add("open"); $("answer").classList.add("show"); } }
+function grade(ok) { const c = queue.shift(); if (ok) known++; else { missed++; queue.push(c); } show(); }
+$("yes").onclick = () => grade(true);
+$("no").onclick = () => grade(false);
+$("shuffle").onclick = () => start(true);
+$("restart").onclick = () => start(false);
+$("tag").onchange = () => start(false);
+document.addEventListener("keydown", e => {
+  if (e.key === " ") { e.preventDefault(); flip(); }
+  else if ($("answer").classList.contains("show") && (e.key === "ArrowRight" || e.key === "1")) grade(true);
+  else if ($("answer").classList.contains("show") && (e.key === "ArrowLeft" || e.key === "2")) grade(false);
+});
+start(false);
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "pdf",
+  "version": "0.1.0",
+  "description": "PDF-ek: szöveg, szavak koordinátával, táblázatok, regex-keresés, oldal képként (PyMuPDF)",
+  "tools": [
+    {"name": "pdf_info", "level": "read"},
+    {"name": "pdf_text", "level": "read"},
+    {"name": "pdf_words", "level": "read"},
+    {"name": "pdf_tables", "level": "read"},
+    {"name": "pdf_search", "level": "read"},
+    {"name": "pdf_render", "level": "act"}
+  ],
+  "deps": ["pdfplumber", "pypdfium2"]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "local",
+  "version": "0.1.0",
+  "description": "Helyi LLM (Ollama): ingyenes kérdés-válasz, hosszú szövegek háttér-összefoglalása szakaszonként, folyamatjelzővel",
+  "tools": [
+    {"name": "local_models", "level": "read"},
+    {"name": "local_ask", "level": "read"},
+    {"name": "local_summarize", "level": "act"},
+    {"name": "local_job", "level": "read"}
+  ],
+  "deps": ["httpx"]
+}

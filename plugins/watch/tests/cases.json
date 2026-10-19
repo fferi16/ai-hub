@@ -1,0 +1,16 @@
+[
+  {"tool": "watch_remove", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in"}},
+  {"tool": "watch_add", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in", "pattern": "*.txt", "action": "log", "settle_s": 0, "process_existing": true}, "expect": {"ok": true, "existing_files": 1, "existing": "feldolgozandó"}},
+  {"tool": "watch_add", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in", "pattern": "*.txt", "action": "log"}, "expect": {"ok": false}, "contains": "már létezik"},
+  {"tool": "watch_add", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in", "pattern": "*.JPG;*.png", "action": "log", "settle_s": 0}, "expect": {"ok": true, "existing_files": 1, "existing": "ismertnek vett"}},
+  {"tool": "watch_scan", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in"}, "expect": {"ok": true, "fired": ["regi.txt"]}},
+  {"tool": "watch_scan", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in"}, "expect": {"ok": true, "fired": []}},
+  {"tool": "watch_events", "args": {"n": 3}, "contains": "\"event\":\"new_file\",\"file\":\"regi.txt\",\"action\":\"log\""},
+  {"tool": "watch_list", "args": {}, "expect": {"ok": true, "interval_s": 15}, "contains": "_test_in"},
+  {"tool": "watch_add", "args": {"folder": "C:\\nincs\\ilyen\\mappa"}, "expect": {"ok": false}, "contains": "nincs ilyen mappa"},
+  {"tool": "watch_add", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in", "action": "torles"}, "expect": {"ok": false}, "contains": "ismeretlen action"},
+  {"tool": "watch_scan", "args": {"id": "nincs00"}, "expect": {"ok": false}},
+  {"tool": "watch_remove", "args": {"folder": "C:\\HUB\\plugins\\watch\\tests\\_test_in"}, "expect": {"ok": true, "removed": 2}},
+  {"tool": "watch_remove", "args": {"id": "nincs00"}, "expect": {"ok": false}, "contains": "nincs ilyen szabály"},
+  {"tool": "watch_remove", "args": {}, "expect": {"ok": false}}
+]

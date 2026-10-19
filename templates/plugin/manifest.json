@@ -1,0 +1,9 @@
+{
+  "name": "{{name}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
+  "tools": [
+    {"name": "{{prefix}}example", "level": "read"}
+  ],
+  "deps": []
+}

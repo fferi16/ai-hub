@@ -1,0 +1,3 @@
+[
+  {"tool": "{{prefix}}example", "args": {"text": "teszt"}, "expect": {"ok": true, "text": "teszt"}}
+]
