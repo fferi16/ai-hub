@@ -58,7 +58,7 @@ def local_ask(prompt: str, model: str = "", system: str = "", max_tokens: int = 
 @tool
 def local_summarize(path: str, instructions: str = "", model: str = "", chunk_chars: int = 8000, points: int = 8,
                     out: str = "") -> dict:
-    """Hosszú szöveg (txt/md/srt/docx/pdf, pl. media-leirat) összefoglalása háttérben szakaszonként + áttekintés → .md; job-ot ad."""
+    """Hosszú szöveg (txt/md/srt/docx/pdf) háttér-összefoglalása → .md, job-ot ad; media-leirathoz a media_digest jobb."""
     p = Path(path).expanduser()
     if not p.is_file():
         return {"ok": False, "reason": f"nincs ilyen fájl: {path}"}

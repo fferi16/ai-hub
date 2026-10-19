@@ -78,6 +78,12 @@ C:\Hub\
 - Kimenet mindig tömör JSON
 - 4000 karakter fölött a Hub levágja, a teljes szöveget az `out\` mappába menti, és csak az útvonalat + egy rövid kivonatot ad vissza
 - Kép soha nem megy automatikusan, csak útvonal; Claude dönti el, megnézi-e
+- Eszközleírás legfeljebb 120 karakter (a Hub ennél vág); a használati szabály legyen elöl
+- Hosszú szöveg: **előbb összefoglaló** (`media_digest` leirathoz, `local_summarize` másra), a teljes szövegből csak célzott keresés
+- Nagy fájl: előbb áttekintés (`pdf_info`, `office_xl_sheets`), majd szűrt olvasás (`pages`, `cells`, `pdf_search`)
+- `hub_list` alapból tömör (eszköznevek); leírások: `hub_list(plugin=…)` vagy `detail=true`
+- Mérés: `hub_stats` – eszközönkénti kimenet-fogyasztás a naplóból; a legnagyobbat optimalizáld először
+- Próba-pluginok (`_probe`, `hello`) éles használatban kikapcsolva
 
 ## Biztonság
 - Titkok (API-kulcsok, jelszavak) csak a Windows Hitelesítőadat-kezelőben (`keyring`), soha nem a kódban, kimenetben vagy naplóban

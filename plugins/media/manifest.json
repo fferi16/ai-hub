@@ -5,6 +5,7 @@
   "tools": [
     {"name": "media_info", "level": "read"},
     {"name": "media_transcribe", "level": "act"},
+    {"name": "media_digest", "level": "act"},
     {"name": "media_frames", "level": "act"},
     {"name": "media_job", "level": "read"},
     {"name": "media_notify", "level": "act"}

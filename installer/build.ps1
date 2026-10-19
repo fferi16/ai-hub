@@ -18,7 +18,8 @@ git -C $root archive --format=zip -o "$stage.zip" HEAD
 Expand-Archive "$stage.zip" $stage -Force
 Remove-Item "$stage.zip"
 # a kiadott példány frissítési forrása legyen a cél-repó
-& "$root\.venv\Scripts\python.exe" "$PSScriptRoot\set_repo.py" "$stage\config.json" $Repo | Out-Null
+$py = if (Test-Path "$root\.venv\Scripts\python.exe") { "$root\.venv\Scripts\python.exe" } else { (Get-Command python -ErrorAction Stop).Source }
+& $py "$PSScriptRoot\set_repo.py" "$stage\config.json" $Repo | Out-Null
 $out = "$root\installer\out"
 New-Item -ItemType Directory -Force $out | Out-Null
 & $iscc "/DAppVersion=$version" "/DAppRepo=$Repo" "/DSrc=$stage" "/O$out" "$PSScriptRoot\ai-hub.iss"

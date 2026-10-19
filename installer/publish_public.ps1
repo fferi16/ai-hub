@@ -27,7 +27,8 @@ if (-not $exists) {
 git -C $root archive --format=zip -o "$work.zip" HEAD
 Expand-Archive "$work.zip" $work -Force
 Remove-Item "$work.zip"
-& "$root\.venv\Scripts\python.exe" "$PSScriptRoot\set_repo.py" "$work\config.json" $Repo | Out-Null
+$py = if (Test-Path "$root\.venv\Scripts\python.exe") { "$root\.venv\Scripts\python.exe" } else { (Get-Command python -ErrorAction Stop).Source }
+& $py "$PSScriptRoot\set_repo.py" "$work\config.json" $Repo | Out-Null
 
 git -C $work add -A
 git -C $work -c user.name="fferi16" -c user.email="fferi16@users.noreply.github.com" commit -q -m "AI HUB v$version" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"

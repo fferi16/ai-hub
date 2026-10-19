@@ -3,7 +3,7 @@
 Műveletek (action):
 - "log"           csak naplózza az új fájlt (watch_events) – próbához
 - "media"         videó/hang → media_transcribe + media_frames
-- "media+summary" mint a media, és a kész leiratból helyi összefoglaló (local_summarize)
+- "media+summary" mint a media, és a kész leiratból helyi tananyag-összefoglaló (media_digest → <név>_digest.md)
 A fájlt csak akkor dolgozza fel, ha a mérete settle_s másodpercig nem változik (kész a másolás/letöltés).
 A már meglévő fájlokat hozzáadáskor ismertnek veszi (process_existing=True esetén feldolgozza).
 copy_to: ide másolja a kész leiratot (.txt) és összefoglalót (.md) – pl. maga a figyelt mappa.
@@ -113,8 +113,11 @@ def _advance(rule: dict) -> None:
             _copy(rule, st.get("txt"))
             _event(rule, "transcript_done", file=pj["file"], txt=st.get("txt"))
             if rule["action"] == "media+summary":
-                r = _bridge("local").local_summarize(st["txt"])
-                if r.get("ok"):
+                r = _bridge("media").media_digest(st["txt"])
+                if r.get("ok") and r.get("cached"):  # már volt friss összefoglaló
+                    _copy(rule, r.get("md"))
+                    _event(rule, "summary_done", file=pj["file"], md=r.get("md"))
+                elif r.get("ok"):
                     keep.append({**pj, "step": "summary", "local_job": r["job"]})
                     _event(rule, "summary_started", file=pj["file"], job=r["job"])
                 else:
@@ -208,7 +211,7 @@ def __hub_unload__():
 @tool
 def watch_add(folder: str, pattern: str = "*.mp4;*.mkv;*.mov;*.m4a;*.mp3", action: str = "media",
               copy_to: str = "", settle_s: int = 20, process_existing: bool = False) -> dict:
-    """Mappafigyelés felvétele: action = log | media | media+summary; pattern ';'-vel több minta; copy_to ide másolja a kész leiratot/összefoglalót."""
+    """Mappafigyelés: action = log | media | media+summary; pattern ';'-vel elválasztva; copy_to: ide másolja az eredményt."""
     p = Path(folder).expanduser()
     if not p.is_dir():
         return {"ok": False, "reason": f"nincs ilyen mappa: {folder}"}

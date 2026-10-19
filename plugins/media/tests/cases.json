@@ -10,5 +10,9 @@
   {"tool": "media_notify", "args": {"job": "last", "dry": true}, "expect": {"ok": true}, "contains": "watching"},
   {"tool": "media_notify", "args": {"job": "nemletezo-job", "dry": true}, "expect": {"ok": false}, "contains": "nincs figyelhető job"},
   {"tool": "media_notify", "args": {"job": "..\\x", "dry": true}, "expect": {"ok": false}},
+  {"tool": "media_digest", "args": {"path": "C:\\HUB\\out\\media\\_test\\fixture.txt", "force": true, "wait_s": 100}, "expect": {"ok": true, "cached": false, "md": "C:\\HUB\\out\\media\\_test\\fixture_digest.md", "chars": {"$gt": 20}}},
+  {"tool": "media_digest", "args": {"path": "C:\\HUB\\out\\media\\_test\\fixture.txt"}, "expect": {"ok": true, "cached": true}, "contains": "preview"},
+  {"tool": "media_digest", "args": {"path": "C:\\HUB\\plugins\\media\\tests\\fixture.mp4"}, "expect": {"ok": false}, "contains": "még nincs leirat"},
+  {"tool": "media_digest", "args": {"path": "C:\\nincs\\ilyen.txt"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
   {"tool": "media_transcribe", "args": {"path": "C:\\nincs\\ilyen.mp4"}, "expect": {"ok": false}}
 ]

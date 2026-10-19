@@ -41,7 +41,7 @@ def _kill_started(pids_file: Path) -> list[int]:
 
 @tool
 def office_to_pdf(path: str, out: str = "", update_toc: bool = True, save_docx: str = "") -> dict:
-    """Word/Excel/PowerPoint → PDF (elakadásvédelemmel, ~100 s korlát); Wordnél frissíti a tartalomjegyzéket, save_docx-ba a frissített példányt menti."""
+    """Word/Excel/PowerPoint → PDF elakadásvédelemmel; Wordnél frissíti a tartalomjegyzéket, save_docx: frissített másolat."""
     src, err = _file(path, OFFICE_EXT)
     if err:
         return err
@@ -102,7 +102,7 @@ def office_xl_sheets(path: str) -> dict:
 
 @tool
 def office_xl_read(path: str, sheet: str = "", cells: str = "", formulas: bool = False, max_cells: int = 2000) -> dict:
-    """Excel-tartomány értékei (vagy képletei) soronként; cells pl. 'A1:F40' (üres = használt tartomány); üres cellák nélkül."""
+    """Excel-tartomány értékei/képletei, üres cellák nélkül (cells pl. 'A1:F40'); nagy lapnál előbb office_xl_sheets."""
     wb, err = _wb(path, formulas)
     if err:
         return err
@@ -168,7 +168,7 @@ _ENT = {"&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'"}
 
 @tool
 def office_docx_text(path: str, max_chars: int = 20000) -> dict:
-    """Word (.docx) szövege bekezdésenként, a címsorokat '#' jelöléssel."""
+    """Word (.docx) szövege bekezdésenként, címsorok '#'-jellel; max_chars korlát. Hosszú dokumentumnál: local_summarize."""
     p, err = _file(path, {".docx"})
     if err:
         return err

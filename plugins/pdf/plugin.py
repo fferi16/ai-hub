@@ -88,7 +88,7 @@ def pdf_info(path: str) -> dict:
 
 @tool
 def pdf_text(path: str, pages: str = "", layout: bool = False, max_chars: int = 20000) -> dict:
-    """Oldalak szövege olvasási sorrendben, oldalanként '--- N. oldal ---' elválasztóval (layout=True: térközök megtartva)."""
+    """Oldalak szövege oldalankénti elválasztóval; nagy PDF-nél előbb pdf_info, majd pages-szűrő vagy pdf_search."""
     pdf, err = _open(path)
     if err:
         return err

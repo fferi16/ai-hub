@@ -18,10 +18,10 @@
   },
   "plugins": {
     "_probe": {
-      "enabled": true
+      "enabled": false
     },
     "hello": {
-      "enabled": true
+      "enabled": false
     },
     "look": {
       "enabled": true

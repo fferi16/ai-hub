@@ -37,19 +37,28 @@ def install(hub: Hub) -> None:
         p = hub.plugins_dir / plugin
         return p if (p / "manifest.json").exists() else None
 
-    def hub_list() -> dict:
-        """Pluginok és eszközeik tömören: név, verzió, be/ki, eszközök [név, szint, leírás]."""
+    def hub_list(plugin: str = "", detail: bool = False) -> dict:
+        """Pluginok tömören (név, be/ki, eszköznevek; nem-read szint ':act'/':danger' jellel); plugin='név' vagy detail=true a leírásokkal."""
         plugins = []
         for name, m in hub.manifests().items():
+            if plugin and name != plugin:
+                continue
             loaded = hub.loaded.get(name, {}).get("tools", {})
-            tools = [
-                [t["name"], norm_level(t.get("level")), loaded.get(t["name"], {}).get("desc") or t.get("desc", "")]
-                for t in m.get("tools", [])
-            ]
-            item = {"n": name, "v": m.get("version", ""), "on": name in hub.loaded, "d": m.get("description", ""), "t": tools}
+            full = detail or bool(plugin)
+            if full:
+                tools = [[t["name"], norm_level(t.get("level")), loaded.get(t["name"], {}).get("desc") or t.get("desc", "")]
+                         for t in m.get("tools", [])]
+                item = {"n": name, "v": m.get("version", ""), "on": name in hub.loaded, "d": m.get("description", ""), "t": tools}
+            else:
+                tools = [t["name"] + ("" if norm_level(t.get("level")) == "read" else ":" + norm_level(t.get("level")))
+                         for t in m.get("tools", [])]
+                d = m.get("description", "")
+                item = {"n": name, "on": name in hub.loaded, "d": d if len(d) <= 70 else d[:69] + "…", "t": tools}
             if "error" in m:
                 item["err"] = m["error"]
             plugins.append(item)
+        if plugin and not plugins:
+            return {"ok": False, "reason": f"nincs ilyen plugin: {plugin}"}
         return {"ok": True, "plugins": plugins}
 
     def hub_new_plugin(name: str, description: str) -> dict:
@@ -85,8 +94,10 @@ def install(hub: Hub) -> None:
             return {"ok": False, "reason": "bad_deps", "deps": bad}
         if not deps:
             return {"ok": True, "installed": []}
-        r = run_quiet([python_exe(), "-m", "pip", "install", "--disable-pip-version-check", *deps], 900)
-        return {"ok": r.returncode == 0, "installed": deps, "tail": (r.stdout + r.stderr)[-600:]}
+        r = run_quiet([python_exe(), "-m", "pip", "install", "--disable-pip-version-check", "-q", *deps], 900)
+        if r.returncode == 0:  # sikernél nem kell a pip-napló
+            return {"ok": True, "installed": deps}
+        return {"ok": False, "installed": deps, "tail": (r.stdout + r.stderr)[-600:]}
 
     def hub_test(plugin: str) -> dict:
         """A plugin tests/cases.json eseteinek futtatása: átment db, bukott esetek és okuk."""
@@ -149,6 +160,31 @@ def install(hub: Hub) -> None:
         lines = hub.audit_path.read_text("utf-8").splitlines()[-n:]
         return {"ok": True, "entries": [json.loads(l) for l in lines if l.strip()]}
 
+    def hub_stats(days: int = 7, top: int = 10) -> dict:
+        """Kimenet-fogyasztás eszközönként az utolsó N napból: hívás, össz/átlag/max karakter, ~token, levágott hívások."""
+        from datetime import datetime, timedelta
+        if not hub.audit_path.exists():
+            return {"ok": True, "tools": []}
+        since = (datetime.now() - timedelta(days=max(1, min(int(days), 365)))).isoformat(timespec="seconds")
+        agg: dict[str, list[int]] = {}
+        calls = chars = 0
+        for line in hub.audit_path.read_text("utf-8").splitlines():
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            if e.get("ts", "") < since:
+                continue
+            a = agg.setdefault(e.get("tool", "?"), [0, 0, 0, 0, 0])  # hívás, karakter, max, levágott, ms
+            c = int(e.get("chars", 0))
+            a[0] += 1; a[1] += c; a[2] = max(a[2], c); a[3] += 1 if e.get("out") else 0; a[4] += int(e.get("ms", 0))
+            calls += 1; chars += c
+        rows = sorted(agg.items(), key=lambda kv: -kv[1][1])[:max(1, min(int(top), 50))]
+        return {"ok": True, "days": days, "calls": calls, "chars": chars, "tokens_est": round(chars / 3.5),
+                "tools": [{"tool": k, "calls": v[0], "chars": v[1], "avg": v[1] // v[0], "max": v[2], "truncated": v[3],
+                           "share": round(v[1] / chars, 3) if chars else 0, "avg_ms": v[4] // v[0]} for k, v in rows],
+                "note": "csak a hub kimenetei; a Claude által közvetlenül olvasott fájlok/képek nincsenek benne"}
+
     def hub_progress(action: str = "status") -> dict:
         """Folyamatjelző: action='status' a futó/nemrég kész folyamatok, 'open' megnyitja a lebegő ablakot."""
         import hubkit
@@ -188,7 +224,7 @@ def install(hub: Hub) -> None:
 
     levels = {
         hub_list: "read", hub_new_plugin: "act", hub_install_deps: "act", hub_test: "act",
-        hub_enable: "act", hub_disable: "act", hub_log: "read", hub_progress: "act",
+        hub_enable: "act", hub_disable: "act", hub_log: "read", hub_stats: "read", hub_progress: "act",
         hub_update_check: "read", hub_update_apply: "danger",
     }
     long_running = {hub_test: 600, hub_install_deps: 900}

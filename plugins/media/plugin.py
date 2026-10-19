@@ -68,12 +68,68 @@ def media_info(path: str) -> dict:
 
 @tool
 def media_transcribe(path: str, lang: str = "hu", model: str = "large-v3", out_dir: str = "") -> dict:
-    """Leirat háttérben (faster-whisper, GPU ha van): <név>.txt [óó:pp:mm] sorokkal + .srt; job-ot ad vissza."""
+    """Leirat háttérben (faster-whisper, GPU ha van) → <név>.txt [óó:pp:mm] sorokkal + .srt; job-ot ad. Utána: media_digest."""
     p, err = _resolve(path)
     if err:
         return err
     out = Path(out_dir) if out_dir else OUT / p.stem
     return _start("transcribe", p, out, {"lang": lang or None, "model": model})
+
+
+DIGEST_INSTR = ("Ez egy tanóra / előadás gépi leirata. Tananyagként foglald össze: definíciók, felsorolások, számok, "
+                "folyamatok lépései, és amit az előadó vizsgaanyagnak vagy fontosnak mond. A szervezési csevegést, "
+                "a technikai közbeszólásokat hagyd ki.")
+
+
+def _transcript_for(p: Path) -> Path | None:
+    if p.suffix.lower() in (".txt", ".srt", ".md"):
+        return p
+    cand = OUT / p.stem / f"{p.stem}.txt"
+    return cand if cand.is_file() else None
+
+
+@tool
+def media_digest(path: str, model: str = "", force: bool = False, instructions: str = "", wait_s: int = 0) -> dict:
+    """Hosszú leiratnál ezzel kezdj: leirat/videó → helyi tananyag-összefoglaló .md (gyorsítótár); utána csak célzott keresés."""
+    p = Path(path).expanduser()
+    if not p.is_file():
+        return {"ok": False, "reason": f"nincs ilyen fájl: {path}"}
+    tr = _transcript_for(p)
+    if not tr:
+        return {"ok": False, "reason": "ehhez a videóhoz még nincs leirat", "hint": "media_transcribe, majd media_digest"}
+    md = tr.with_name(f"{tr.stem}_digest.md")
+    if md.is_file() and md.stat().st_mtime >= tr.stat().st_mtime and not force:
+        text = md.read_text("utf-8")
+        return {"ok": True, "cached": True, "md": str(md), "transcript": str(tr), "chars": len(text),
+                "transcript_chars": tr.stat().st_size, "preview": text[:500]}
+    local = _local_plugin()
+    if local is None:
+        return {"ok": False, "reason": "a local plugin (Ollama) nem érhető el"}
+    r = local.local_summarize(str(tr), instructions or DIGEST_INSTR, model, out=str(md))
+    if not r.get("ok"):
+        return r
+    if wait_s > 0:
+        st = local.local_job(r["job"], min(int(wait_s), 100))
+        if st.get("state") == "done":
+            text = md.read_text("utf-8")
+            return {"ok": True, "cached": False, "job": r["job"], "md": str(md), "transcript": str(tr),
+                    "chars": len(text), "transcript_chars": tr.stat().st_size, "preview": text[:500]}
+        if not st.get("ok"):
+            return st
+    return {"ok": True, "cached": False, "job": r["job"], "md": str(md), "transcript": str(tr),
+            "next": "local_job(job, wait_s=100) – pár perc; utána olvasd az .md-t, a leiratból csak célzottan keress"}
+
+
+def _local_plugin():
+    """A local plugin függvényei (saját modulpéldány; állapotmentes)."""
+    import importlib.util
+    path = HERE.parent / "local" / "plugin.py"
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("media_bridge_local", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 @tool
