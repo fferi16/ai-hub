@@ -4,6 +4,7 @@ A szöveget sorhatáron ~chunk_chars méretű szakaszokra bontja, mindegyiket a 
 pontokba szedi (számok, definíciók, felsorolások megtartásával), végül egy áttekintőt ír.
 Ha a sorok [óó:pp:mm] időbélyeggel kezdődnek (media-leirat), a szakaszok időtartományát is jelzi.
 """
+import hashlib
 import json
 import os
 import re
@@ -22,6 +23,9 @@ try:
 except Exception:  # noqa: BLE001
     progress = None
 
+NUM_CTX = 8192          # szakasz és áttekintés is ezzel fut → a modell nem töltődik újra, a 6 GB-os GPU-n marad
+OVERVIEW_CHARS = 13000  # ~4 ezer token bemenet + max 1800 token válasz < NUM_CTX
+CACHE = HERE.parents[1] / "out" / "local" / "cache"
 JDIR = Path(sys.argv[1])
 SPEC = json.loads((JDIR / "spec.json").read_text("utf-8"))
 REPORT = progress is not None and "_test" not in SPEC["out"]
@@ -86,28 +90,59 @@ def main():
     status(state="running", step="szöveg beolvasása", progress=0)
     parts = [c for c in chunks(read_text(src), int(p["chunk_chars"])) if c.strip()]
     instr = p.get("instructions") or ""
-    t0, sums = time.time(), []
+    t0, sums, skipped = time.time(), [], 0
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    def write(overview: str = "", note: str = ""):
+        md = [f"# Összefoglaló – {src.name}", f"_Helyi modell: {p['model']} · {len(sums)}/{len(parts)} szakasz · "
+              f"{int(time.time() - t0)} mp{note}_", ""]
+        if overview:
+            md += ["## Áttekintés", overview, ""]
+        md += [f"## {h}\n{s}\n" for h, s in sums]
+        out.write_text("\n".join(md), "utf-8")
+
     for i, part in enumerate(parts, 1):
         status(state="running", step=f"{i}/{len(parts)}. szakasz", progress=round((i - 1) / (len(parts) + 1), 3),
                elapsed_s=int(time.time() - t0))
-        r = chat(PART.format(instr=instr, n=p["points"], text=part), p["model"], SYSTEM, max_tokens=700, timeout=300)
-        sums.append((f"{i}. szakasz{span(part)}", r["text"]))
-    overview = ""
+        prompt = PART.format(instr=instr, n=p["points"], text=part)
+        key = hashlib.sha256((p["model"] + "\n" + prompt).encode()).hexdigest()[:24]
+        cached = CACHE / f"{key}.txt"
+        if cached.exists():  # újrafuttatáskor a kész szakaszokat nem számolja újra
+            text = cached.read_text("utf-8")
+        else:
+            text = _try_chat(prompt, p["model"], 700)
+            if text is None:
+                skipped += 1
+                text = "_(ez a szakasz időtúllépés miatt kimaradt – a leiratban: " + (span(part).strip(" ()") or "lásd a szöveget") + ")_"
+            else:
+                CACHE.mkdir(parents=True, exist_ok=True)
+                cached.write_text(text, "utf-8")
+        sums.append((f"{i}. szakasz{span(part)}", text))
+        write(note=" · folyamatban")  # menet közben is mentünk: hiba esetén sem vész el a kész munka
+    overview, note = "", ""
     if len(sums) > 1:
         status(state="running", step="áttekintés", progress=round(len(parts) / (len(parts) + 1), 3),
                elapsed_s=int(time.time() - t0))
-        joined = "\n\n".join(f"## {h}\n{s}" for h, s in sums)[:24000]
-        overview = chat(FINAL.format(instr=instr, text=joined), p["model"], SYSTEM, max_tokens=1200,
-                        timeout=300, num_ctx=12288)["text"]
-    out.parent.mkdir(parents=True, exist_ok=True)
-    md = [f"# Összefoglaló – {src.name}", f"_Helyi modell: {p['model']} · {len(parts)} szakasz · "
-          f"{int(time.time() - t0)} mp_", ""]
-    if overview:
-        md += ["## Áttekintés", overview, ""]
-    md += [f"## {h}\n{s}\n" for h, s in sums]
-    out.write_text("\n".join(md), "utf-8")
-    status(state="done", progress=1, step="kész", md=str(out), parts=len(parts), chars=out.stat().st_size,
-           elapsed_s=int(time.time() - t0))
+        joined = "\n\n".join(f"## {h}\n{s}" for h, s in sums)[:OVERVIEW_CHARS]
+        overview = _try_chat(FINAL.format(instr=instr, text=joined), p["model"], 1800) or ""
+        if not overview:
+            note = " · áttekintés nélkül (időtúllépés)"
+    if skipped:
+        note += f" · {skipped} szakasz kimaradt"
+    write(overview, note)
+    status(state="done", progress=1, step="kész", md=str(out), parts=len(parts), skipped=skipped,
+           overview=bool(overview), chars=out.stat().st_size, elapsed_s=int(time.time() - t0))
+
+
+def _try_chat(prompt: str, model: str, max_tokens: int) -> str | None:
+    """Egy újrapróbálással; mindig ugyanazzal a kontextusmérettel (nincs modell-újratöltés, a GPU-n marad)."""
+    for attempt in range(2):
+        try:
+            return chat(prompt, model, SYSTEM, max_tokens=max_tokens, timeout=600, num_ctx=NUM_CTX)["text"]
+        except Exception as e:  # noqa: BLE001
+            print(f"hívás hiba ({attempt + 1}/2): {type(e).__name__}: {e}", flush=True)
+            time.sleep(5)
+    return None
 
 
 if __name__ == "__main__":
