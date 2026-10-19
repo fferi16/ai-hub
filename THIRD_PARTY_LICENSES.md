@@ -26,6 +26,7 @@ a felhasználó gépén, a hivatalos forrásból (PyPI) tölti le, változtatás
 | pdfplumber, pdfminer.six | `pdf` – szöveg, táblázatok | MIT |
 | pypdfium2 (PDFium) | `pdf` – oldal képként | Apache-2.0 / BSD-3-Clause |
 | genanki | `study` – Anki-pakli | MIT |
+| markitdown (+ mammoth, python-pptx, pandas, xlrd, xlsxwriter, magika, onnxruntime, lxml, beautifulsoup4) | `docs` – dokumentum → Markdown | MIT / BSD / Apache-2.0 |
 
 ## Modellek és külső programok (nem részei a repónak)
 - **Whisper large-v3** (OpenAI), a faster-whisper első használatkor tölti le a Hugging Face-ről – MIT.

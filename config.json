@@ -43,6 +43,9 @@
     },
     "watch": {
       "enabled": true
+    },
+    "docs": {
+      "enabled": true
     }
   }
 }

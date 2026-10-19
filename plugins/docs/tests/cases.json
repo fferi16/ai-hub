@@ -1,0 +1,13 @@
+[
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx", "out": "C:\\HUB\\out\\docs\\_test\\minta.md", "force": true}, "expect": {"ok": true, "cached": false, "empty": false}, "contains": "Árvíztűrő tükörfúrógép"},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx", "out": "C:\\HUB\\out\\docs\\_test\\minta.md"}, "expect": {"ok": true, "cached": true}},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx", "out": "C:\\HUB\\out\\docs\\_test\\minta.md", "preview_chars": 0}, "expect": {"ok": true, "preview": ""}},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\b.xlsx", "out": "C:\\HUB\\out\\docs\\_test\\b.md", "force": true}, "expect": {"ok": true}, "contains": "Ablak"},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\b.xlsx", "out": "C:\\HUB\\out\\docs\\_test\\b.md"}, "contains": "Új lap"},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\pdf\\tests\\minta.pdf", "out": "C:\\HUB\\out\\docs\\_test\\minta_pdf.md", "force": true}, "expect": {"ok": true}, "contains": "4-16-4"},
+  {"tool": "docs_to_md", "args": {"path": "C:\\HUB\\plugins\\docs\\plugin.py"}, "expect": {"ok": false}, "contains": "nem támogatott"},
+  {"tool": "docs_to_md", "args": {"path": "C:\\nincs\\ilyen.docx"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "docs_folder_to_md", "args": {"folder": "C:\\HUB\\plugins\\office\\tests", "pattern": "*.xlsx", "out_dir": "C:\\HUB\\out\\docs\\_test\\mappa", "force": true}, "expect": {"ok": true, "converted": 2, "failed": []}},
+  {"tool": "docs_folder_to_md", "args": {"folder": "C:\\HUB\\plugins\\office\\tests", "pattern": "*.xlsx;*.docx", "out_dir": "C:\\HUB\\out\\docs\\_test\\mappa", "max_files": 1}, "expect": {"ok": true, "converted": 1, "skipped_over_limit": 2}},
+  {"tool": "docs_folder_to_md", "args": {"folder": "C:\\nincs\\mappa"}, "expect": {"ok": false}}
+]

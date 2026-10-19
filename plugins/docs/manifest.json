@@ -1,0 +1,10 @@
+{
+  "name": "docs",
+  "version": "0.1.0",
+  "description": "Dokumentum → tömör Markdown (MarkItDown, MIT): Word, Excel, PowerPoint, PDF, Outlook, HTML – fájlba, előnézettel",
+  "tools": [
+    {"name": "docs_to_md", "level": "act"},
+    {"name": "docs_folder_to_md", "level": "act"}
+  ],
+  "deps": ["markitdown[docx,pptx,xlsx,xls,pdf,outlook]"]
+}
