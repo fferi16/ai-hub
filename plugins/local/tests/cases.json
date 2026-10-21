@@ -9,5 +9,16 @@
   {"tool": "local_summarize", "args": {"path": "C:\\HUB\\plugins\\local\\plugin.py"}, "expect": {"ok": false}, "contains": "nem támogatott"},
   {"tool": "local_summarize", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\minta.txt", "points": 3, "out": "C:\\HUB\\out\\local\\_test\\minta.md"}, "expect": {"ok": true}},
   {"tool": "local_job", "args": {"job": "last", "wait_s": 100}, "expect": {"ok": true, "state": "done", "parts": 1, "md": "C:\\HUB\\out\\local\\_test\\minta.md"}},
-  {"tool": "local_job", "args": {"job": "nincs-ilyen"}, "expect": {"ok": false}, "contains": "nincs ilyen job"}
+  {"tool": "local_job", "args": {"job": "nincs-ilyen"}, "expect": {"ok": false}, "contains": "nincs ilyen job"},
+  {"tool": "local_see", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\kep.png"}, "expect": {"ok": true, "model": "qwen3-vl:30b"}, "contains": "2026"},
+  {"tool": "local_see", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\kep.png", "question": "Milyen színű a kör? Egy szóval válaszolj."}, "expect": {"ok": true, "seconds": {"$lt": 60}}, "contains": "iros"},
+  {"tool": "local_see", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\kep.png; C:\\HUB\\plugins\\local\\tests\\kep2.png", "question": "Milyen színű a négyzet az első és milyen a második képen?"}, "expect": {"ok": true}, "contains": "zöld"},
+  {"tool": "local_see", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\minta.txt"}, "expect": {"ok": false}, "contains": "nem támogatott képformátum"},
+  {"tool": "local_see", "args": {"path": "C:\\nincs\\kep.png"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "local_see", "args": {"path": "C:\\HUB\\plugins\\local\\tests\\kep.png", "model": "nincs-ilyen:1b"}, "expect": {"ok": false}, "contains": "nincs ilyen modell"},
+  {"tool": "local_see", "args": {"path": " ; "}, "expect": {"ok": false}},
+  {"tool": "local_see_folder", "args": {"folder": "C:\\HUB\\plugins\\local\\tests", "pattern": "kep*.png", "out": "C:\\HUB\\out\\local\\_test\\kepek.md", "force": true}, "expect": {"ok": true, "images": 2, "new": 2, "cached": 0}},
+  {"tool": "local_see_folder", "args": {"folder": "C:\\HUB\\plugins\\local\\tests", "pattern": "kep*.png", "out": "C:\\HUB\\out\\local\\_test\\kepek.md"}, "expect": {"ok": true, "new": 0, "cached": 2}},
+  {"tool": "local_see_folder", "args": {"folder": "C:\\HUB\\plugins\\local\\tests", "pattern": "*.gif"}, "expect": {"ok": false}, "contains": "nincs illeszkedő kép"},
+  {"tool": "local_see_folder", "args": {"folder": "C:\\nincs\\mappa"}, "expect": {"ok": false}}
 ]

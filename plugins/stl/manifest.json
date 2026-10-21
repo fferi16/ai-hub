@@ -1,0 +1,12 @@
+{
+  "name": "stl",
+  "version": "0.1.0",
+  "description": "2D profilból 3D nyomtatható test: DXF-kontúr (lyukakkal) kihúzása/forgatása → STL, ellenőrzés, előnézet",
+  "tools": [
+    {"name": "stl_extrude", "level": "act"},
+    {"name": "stl_revolve", "level": "act"},
+    {"name": "stl_info", "level": "read"},
+    {"name": "stl_preview", "level": "act"}
+  ],
+  "deps": ["ezdxf", "matplotlib"]
+}

@@ -75,9 +75,17 @@ class Hub:
         return bool(self.cfg.get("plugins", {}).get(plugin, {}).get("enabled"))
 
     def set_enabled(self, plugin: str, on: bool) -> None:
+        """Csak a kapcsolót írja át – a lemezen lévő friss config.json-ban, hogy a futás közben (kézzel
+        vagy plugin által) beírt beállítások ne vesszenek el (korábban az indításkori másolat írta felül)."""
         with self.lock:
-            self.cfg.setdefault("plugins", {}).setdefault(plugin, {})["enabled"] = on
-            self.save_config()
+            path = self.root / "config.json"
+            try:
+                disk = json.loads(path.read_text("utf-8"))
+            except (OSError, ValueError):
+                disk = self.cfg
+            for cfg in (disk, self.cfg):
+                cfg.setdefault("plugins", {}).setdefault(plugin, {})["enabled"] = on
+            path.write_text(json.dumps(disk, ensure_ascii=False, indent=2) + "\n", "utf-8")
 
     def manifests(self) -> dict[str, dict]:
         out = {}

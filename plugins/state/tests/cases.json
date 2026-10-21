@@ -1,0 +1,17 @@
+[
+  {"tool": "state_clear", "args": {"project": "hubteszt_state"}},
+  {"tool": "state_load", "args": {"project": "hubteszt_state"}, "expect": {"ok": false}, "contains": "nincs mentett állapot"},
+  {"tool": "state_save", "args": {"project": "C:\\Valami\\HubTeszt_State\\", "summary": "első kör kész", "next_steps": "a lépés; b lépés"}, "expect": {"ok": true, "project": "hubteszt_state", "entries": 1}},
+  {"tool": "state_note", "args": {"project": "hubteszt_state", "text": "jegyzet-egy"}, "expect": {"ok": true, "entries": 2}},
+  {"tool": "state_save", "args": {"project": "hubteszt_state", "summary": "második kör kész", "decisions": "- x döntés\n- y döntés", "files": "plugins/state/plugin.py"}, "expect": {"ok": true, "entries": 3}},
+  {"tool": "state_note", "args": {"project": "hubteszt_state", "text": "jegyzet-kettő"}, "expect": {"ok": true}},
+  {"tool": "state_load", "args": {"project": "hubteszt_state"}, "expect": {"ok": true, "summary": "második kör kész", "decisions": ["x döntés", "y döntés"], "files": ["plugins/state/plugin.py"], "age_h": {"$lt": 1}}, "contains": "jegyzet-kettő"},
+  {"tool": "state_load", "args": {"project": "hubteszt_state", "history": 3}, "contains": "első kör kész"},
+  {"tool": "state_list", "args": {}, "expect": {"ok": true}, "contains": "\"p\":\"hubteszt_state\""},
+  {"tool": "state_save", "args": {"project": "hubteszt_state", "summary": "  "}, "expect": {"ok": false}},
+  {"tool": "state_save", "args": {"project": "", "summary": "x"}, "expect": {"ok": false}},
+  {"tool": "state_note", "args": {"project": "hubteszt_state", "text": ""}, "expect": {"ok": false}},
+  {"tool": "state_load", "args": {"project": "hubteszt"}, "expect": {"ok": false}, "contains": "hubteszt_state"},
+  {"tool": "state_clear", "args": {"project": "hubteszt_state"}, "expect": {"ok": true}},
+  {"tool": "state_load", "args": {"project": "hubteszt_state"}, "expect": {"ok": false}}
+]

@@ -1,0 +1,13 @@
+{
+  "name": "index",
+  "version": "0.1.0",
+  "description": "Kereshető teljes szöveges index a fájlokból (SQLite FTS5, ékezet-független): szöveg + Word/Excel/PPT/PDF/Outlook",
+  "tools": [
+    {"name": "index_add", "level": "act"},
+    {"name": "index_refresh", "level": "act"},
+    {"name": "index_search", "level": "read"},
+    {"name": "index_list", "level": "read"},
+    {"name": "index_remove", "level": "act"}
+  ],
+  "deps": ["markitdown[docx,pptx,xlsx,xls,pdf,outlook]"]
+}

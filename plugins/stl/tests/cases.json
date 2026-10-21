@@ -1,0 +1,22 @@
+[
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": 10, "layer": "PROFIL", "out": "C:\\HUB\\out\\stl\\_test\\lap.stl"},
+   "expect": {"ok": true, "loops": 3, "solids": 1, "holes": 2, "watertight": true, "bad_edges": 0, "size_mm": [100.0, 60.0, 10.0], "volume_mm3": {"$gt": 55050, "$lt": 55120}}},
+  {"tool": "stl_info", "args": {"path": "C:\\HUB\\out\\stl\\_test\\lap.stl"}, "expect": {"ok": true, "watertight": true, "size_mm": [100.0, 60.0, 10.0], "volume_mm3": {"$gt": 55050, "$lt": 55120}}},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": 10, "out": "C:\\HUB\\out\\stl\\_test\\ket_test.stl"}, "expect": {"ok": true, "solids": 2, "watertight": true}},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": 2, "layer": "masik", "out": "C:\\HUB\\out\\stl\\_test\\korong.stl"}, "expect": {"ok": true, "solids": 1, "holes": 0, "watertight": true, "volume_mm3": {"$gt": 156, "$lt": 158}}},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\cm.dxf", "height": 5, "out": "C:\\HUB\\out\\stl\\_test\\cm.stl"}, "expect": {"ok": true, "size_mm": [20.0, 30.0, 5.0], "volume_mm3": 3000.0, "triangles": 12}},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "CSO", "out": "C:\\HUB\\out\\stl\\_test\\cso.stl"}, "expect": {"ok": true, "watertight": true, "size_mm": [40.0, 40.0, 30.0], "volume_mm3": {"$gt": 28200, "$lt": 28280}}},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "HENGER", "out": "C:\\HUB\\out\\stl\\_test\\henger.stl"}, "expect": {"ok": true, "watertight": true, "bad_edges": 0, "volume_mm3": {"$gt": 7040, "$lt": 7070}}},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "CSO", "angle": 270, "out": "C:\\HUB\\out\\stl\\_test\\cso270.stl"}, "expect": {"ok": true, "watertight": true, "bad_edges": 0, "volume_mm3": {"$gt": 21150, "$lt": 21210}}},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "HENGER", "angle": 180, "out": "C:\\HUB\\out\\stl\\_test\\felhenger.stl"}, "expect": {"ok": true, "watertight": true, "bad_edges": 0, "volume_mm3": {"$gt": 3520, "$lt": 3535}}},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "ROSSZ"}, "expect": {"ok": false}, "contains": "átnyúlik az Y tengelyen"},
+  {"tool": "stl_revolve", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\forgas.dxf", "layer": "CSO", "angle": 0}, "expect": {"ok": false}, "contains": "0 és 360"},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\nyitott.dxf", "height": 5}, "expect": {"ok": false}, "contains": "nincs zárt kontúr"},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": 5, "layer": "NINCS"}, "expect": {"ok": false}, "contains": "nincs görbe"},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": -1}, "expect": {"ok": false}},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\stl\\tests\\profil.dxf", "height": 5, "out": "C:\\HUB\\out\\stl\\_test\\x.obj"}, "expect": {"ok": false}, "contains": ".stl"},
+  {"tool": "stl_extrude", "args": {"path": "C:\\nincs\\ilyen.dxf", "height": 5}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "stl_extrude", "args": {"path": "C:\\HUB\\plugins\\dxf\\tests\\minta.dxf", "height": 20, "layer": "PROFIL", "blocks": true, "out": "C:\\HUB\\out\\stl\\_test\\ablakok.stl"}, "expect": {"ok": true, "solids": 3, "watertight": true}},
+  {"tool": "stl_info", "args": {"path": "C:\\nincs\\ilyen.stl"}, "expect": {"ok": false}},
+  {"tool": "stl_preview", "args": {"path": "C:\\HUB\\out\\stl\\_test\\cso270.stl", "out": "C:\\HUB\\out\\stl\\_test\\cso270.png", "max_px": 600}, "expect": {"ok": true, "kb": {"$lt": 150}}}
+]

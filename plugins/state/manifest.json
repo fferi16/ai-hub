@@ -1,0 +1,13 @@
+{
+  "name": "state",
+  "version": "0.1.0",
+  "description": "Munkamenet-átadó jegyzet projektenként: végén state_save, elején state_load (tömör, előzményekkel)",
+  "tools": [
+    {"name": "state_save", "level": "act"},
+    {"name": "state_note", "level": "act"},
+    {"name": "state_load", "level": "read"},
+    {"name": "state_list", "level": "read"},
+    {"name": "state_clear", "level": "act"}
+  ],
+  "deps": []
+}

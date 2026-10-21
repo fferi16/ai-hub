@@ -60,10 +60,33 @@ def start_hotkey() -> None:
     threading.Thread(target=loop, name="hotkey", daemon=True).start()
 
 
+def _listen_file():
+    from pathlib import Path
+    return Path(__file__).resolve().parent / "out" / "voice" / "_hallgat.json"
+
+
+def _listening() -> bool:
+    """A voice plugin „Figyelj"-hallgatásának kapcsolója (a diktáló fél másodpercen belül észreveszi)."""
+    import json
+    try:
+        return bool(json.loads(_listen_file().read_text("utf-8")).get("on", True))
+    except (OSError, ValueError, AttributeError):
+        return True
+
+
+def _toggle_listening() -> None:
+    import json
+    p = _listen_file()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"on": not _listening()}), "utf-8")
+
+
 def run_tray(status: Callable[[], str], open_logs: Callable[[], None]) -> None:
     """Blokkol (főszálon fut)."""
     menu = pystray.Menu(
         pystray.MenuItem(lambda _: status(), None, enabled=False),
+        pystray.MenuItem("„Figyelj” hallgatás (Ctrl+Alt+F)", lambda: _toggle_listening(),
+                         checked=lambda _: _listening()),
         pystray.MenuItem("Folyamatjelző megnyitása", lambda: __import__("hubkit").show_widget()),
         pystray.MenuItem("Frissítés keresése…", lambda: _run_updater()),
         pystray.MenuItem("Napló megnyitása", lambda: open_logs()),

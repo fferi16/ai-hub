@@ -1,0 +1,12 @@
+[
+  {"tool": "voice_transcribe", "args": {"path": "C:\\HUB\\plugins\\voice\\tests\\mondat.wav"}, "expect": {"ok": true}, "contains": "magyar felolvasója"},
+  {"tool": "voice_transcribe", "args": {"path": "C:\\HUB\\plugins\\voice\\tests\\jegyzet.mp3"}, "expect": {"ok": true}, "contains": "Második pont"},
+  {"tool": "voice_transcribe", "args": {"path": "C:\\nincs\\ilyen.wav"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "voice_transcribe", "args": {"path": "C:\\HUB\\plugins\\voice\\plugin.py"}, "expect": {"ok": false}},
+  {"tool": "voice_dictation", "args": {"action": "valami"}, "expect": {"ok": false}},
+  {"tool": "voice_dictation", "args": {"action": "status"}, "expect": {"ok": true}, "contains": "\"hotkey\":"},
+  {"tool": "voice_assistant", "args": {"text": "  "}, "expect": {"ok": false}, "contains": "üres kérés"},
+  {"tool": "voice_assistant", "args": {"text": "szia", "backend": "valami"}, "expect": {"ok": false}},
+  {"tool": "voice_enroll", "args": {"action": "status"}, "expect": {"ok": true, "word": "figyelj"}, "contains": "\"samples\":"},
+  {"tool": "voice_enroll", "args": {"action": "valami"}, "expect": {"ok": false}}
+]

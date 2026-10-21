@@ -1,0 +1,15 @@
+[
+  {"tool": "tts_voices", "args": {}, "expect": {"ok": true}, "contains": "hu-HU"},
+  {"tool": "tts_save", "args": {"text": "Szia! Ez a Hub magyar felolvasója.", "out": "C:\\HUB\\out\\tts\\_test\\a.wav"}, "expect": {"ok": true, "voice": "Microsoft Szabolcs", "seconds": {"$gt": 1.5, "$lt": 8}}},
+  {"tool": "tts_save", "args": {"text": "Ugyanez gyorsabban.", "out": "C:\\HUB\\out\\tts\\_test\\gyors.mp3", "rate": 1.5}, "expect": {"ok": true, "kb": {"$lt": 60}}},
+  {"tool": "tts_save", "args": {"text": "Formátum paraméterrel.", "format": "mp3"}, "expect": {"ok": true}, "contains": ".mp3"},
+  {"tool": "tts_save", "args": {"text": "   "}, "expect": {"ok": false}, "contains": "üres"},
+  {"tool": "tts_save", "args": {"text": "**  ``  **"}, "expect": {"ok": false}},
+  {"tool": "tts_save", "args": {"text": "x", "out": "C:\\HUB\\out\\tts\\_test\\x.ogg"}, "expect": {"ok": false}, "contains": ".wav vagy .mp3"},
+  {"tool": "tts_save", "args": {"text": "x", "voice": "xx-XX"}, "expect": {"ok": false}, "contains": "nincs ilyen hang"},
+  {"tool": "tts_file", "args": {"path": "C:\\HUB\\plugins\\tts\\tests\\minta.md", "out": "C:\\HUB\\out\\tts\\_test\\minta.mp3"}, "expect": {"ok": true, "chars": 108, "parts": 1}},
+  {"tool": "tts_file", "args": {"path": "C:\\HUB\\plugins\\office\\tests\\minta.docx", "out": "C:\\HUB\\out\\tts\\_test\\docx.wav"}, "expect": {"ok": true, "seconds": {"$gt": 3}}},
+  {"tool": "tts_file", "args": {"path": "C:\\HUB\\plugins\\tts\\plugin.py"}, "expect": {"ok": false}, "contains": "nem támogatott"},
+  {"tool": "tts_file", "args": {"path": "C:\\nincs\\ilyen.txt"}, "expect": {"ok": false}, "contains": "nincs ilyen fájl"},
+  {"tool": "tts_stop", "args": {}, "expect": {"ok": true}}
+]

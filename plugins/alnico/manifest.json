@@ -1,0 +1,12 @@
+{
+  "name": "alnico",
+  "version": "0.1.0",
+  "description": "Saját CAD (Alnico) élő vezérlése: állapot, megnyitott rajz, megnyitás, parancssor (mint gépelve)",
+  "tools": [
+    {"name": "alnico_status", "level": "read"},
+    {"name": "alnico_drawing", "level": "read"},
+    {"name": "alnico_open", "level": "act"},
+    {"name": "alnico_cmd", "level": "act"}
+  ],
+  "deps": []
+}

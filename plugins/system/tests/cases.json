@@ -1,0 +1,23 @@
+[
+  {"tool": "system_open", "args": {"target": "example.com", "dry_run": true}, "expect": {"ok": true, "kind": "url", "opened": "https://example.com"}},
+  {"tool": "system_open", "args": {"target": "https://example.com/a?b=1", "dry_run": true}, "expect": {"ok": true, "kind": "url", "opened": "https://example.com/a?b=1"}},
+  {"tool": "system_open", "args": {"target": "www.example.com", "dry_run": true}, "expect": {"ok": true, "opened": "https://www.example.com"}},
+  {"tool": "system_open", "args": {"target": "Böngésző", "dry_run": true}, "expect": {"ok": true, "kind": "app"}},
+  {"tool": "system_open", "args": {"target": "jegyzettömb", "dry_run": true}, "expect": {"ok": true, "kind": "app", "opened": "Jegyzettömb"}},
+  {"tool": "system_open", "args": {"target": "Szamologep", "dry_run": true}, "expect": {"ok": true, "opened": "Számológép"}},
+  {"tool": "system_open", "args": {"target": "letöltések mappa", "dry_run": true}, "expect": {"ok": true, "kind": "folder"}, "contains": "Downloads"},
+  {"tool": "system_open", "args": {"target": "C:\\HUB\\plugins\\system", "dry_run": true}, "expect": {"ok": true, "kind": "folder"}},
+  {"tool": "system_open", "args": {"target": "C:\\HUB\\plugins\\system\\manifest.json", "dry_run": true}, "expect": {"ok": true, "kind": "file"}},
+  {"tool": "system_open", "args": {"target": "C:\\Windows\\System32\\cmd.exe", "dry_run": true}, "expect": {"ok": false}, "contains": "futtatható"},
+  {"tool": "system_open", "args": {"target": "file:///C:/Windows/win.ini", "dry_run": true}, "expect": {"ok": false}, "contains": "csak http"},
+  {"tool": "system_open", "args": {"target": "jegyzet.txt", "dry_run": true}, "expect": {"ok": false}, "contains": "nem találom"},
+  {"tool": "system_open", "args": {"target": "nincsilyenprogram123", "dry_run": true}, "expect": {"ok": false}, "contains": "system_apps"},
+  {"tool": "system_open", "args": {"target": "  ", "dry_run": true}, "expect": {"ok": false}, "contains": "üres"},
+  {"tool": "system_apps", "args": {}, "expect": {"ok": true, "n": {"$gt": 5}}},
+  {"tool": "system_apps", "args": {"query": "nincsilyenprogram123"}, "expect": {"ok": true, "n": 0}},
+  {"tool": "system_apps", "args": {"limit": 3}, "expect": {"ok": true, "more": {"$gt": 0}}},
+  {"tool": "system_volume", "args": {}, "expect": {"ok": true, "level": {"$gt": -1, "$lt": 101}}},
+  {"tool": "system_volume", "args": {"level": 150}, "expect": {"ok": false}, "contains": "0 és 100"},
+  {"tool": "system_volume", "args": {"change": 300}, "expect": {"ok": false}},
+  {"tool": "system_power", "args": {"action": "cancel"}, "expect": {"ok": true}}
+]

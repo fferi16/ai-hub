@@ -78,8 +78,10 @@ C:\Hub\
 - Kimenet mindig tömör JSON
 - 4000 karakter fölött a Hub levágja, a teljes szöveget az `out\` mappába menti, és csak az útvonalat + egy rövid kivonatot ad vissza
 - Kép soha nem megy automatikusan, csak útvonal; Claude dönti el, megnézi-e
+- Kép megnézése előtt: `local_see` (ingyenes leírás); a képet Claude csak akkor nyissa meg, ha ez nem elég
 - Eszközleírás legfeljebb 120 karakter (a Hub ennél vág); a használati szabály legyen elöl
 - Hosszú szöveg: **előbb összefoglaló** (`media_digest` leirathoz, `local_summarize` másra), a teljes szövegből csak célzott keresés
+- Fájl keresése mappában: előbb `index_search` (részlettel), csak a találatot nyisd meg
 - Nagy fájl: előbb áttekintés (`pdf_info`, `office_xl_sheets`), majd szűrt olvasás (`pages`, `cells`, `pdf_search`)
 - `hub_list` alapból tömör (eszköznevek); leírások: `hub_list(plugin=…)` vagy `detail=true`
 - Mérés: `hub_stats` – eszközönkénti kimenet-fogyasztás a naplóból; a legnagyobbat optimalizáld először
@@ -116,6 +118,43 @@ A részletes leírás a `look-spec.md` fájlban van. Eszközként:
   - `local` – Ollama (alap: qwen3:8b): kérdés-válasz, hosszú szöveg háttér-összefoglalása szakaszonként
   - `study` – kártyák a tanulójegyzetből, Anki-pakli (.apkg), egyfájlos HTML-kvíz
   - `watch` – mappafigyelő: új fájl → media (+ helyi összefoglaló), eredmények visszamásolása
-- **2. kör – hátra:** `state` (munkamenet-átadó jegyzet), `index` (kereshető index a fájlokból); `local` VL-modell (képek)
-- **Ötletlista:** `audio`/`stems`/`score` (zene), `video` (vágás, fejezetek), `image`, `tts` (magyar felolvasás), `cad`/`cad3d`, `math`, `sim`, `quantum` (Qiskit), `chem`, `data`, `research`
+  - `docs` – dokumentum → tömör Markdown (MarkItDown), gyorsítótárral
+  - `state` – munkamenet-átadó jegyzet projektenként (`out\state\<projekt>.jsonl`): végén `state_save`, közben `state_note`, elején `state_load`
+  - `index` – teljes szöveges index (SQLite FTS5, ékezet-független, `out\index\index.db`): `index_add(mappa)` növekményes, időkerettel
+    (90 s után `incomplete` → újrahívás folytatja), `index_search` → útvonal + rövid részlet; rejtett mappák, `node_modules` kihagyva
+  - `local` képek: `local_see` (1–4 kép leírása/kérdés/összehasonlítás, qwen3-vl:30b Ollamán; hidegen ~1 perc, utána ~6 mp/kép),
+    `local_see_folder` (mappa képei → .md, gyorsítótárral, időkerettel folytatható)
+- **2. kör: kész.**
+- **Ötletlistából kész (2026-10-20):** `tts` – magyar felolvasás (Windows OneCore Szabolcs, WinRT): `tts_speak`/`tts_stop`, `tts_save`, `tts_file` (dokumentum → MP3, darabolva);
+  `voice` – magyar beszédfelismerés (whisper large-v3, GPU): diktálás Ctrl+Alt+D-vel a kurzor helyére (háttérfolyamat, a Hubbal indul/áll),
+  `voice_listen` (mikrofon → szöveg), `voice_transcribe` (rövid hangfájl);
+  hangasszisztens ébresztőszóra (`Figyelj, …`): kis whisper (base, CPU) keresi a szót, a large-v3 megerősíti, a kérést a `claude -p`
+  válaszolja csak hub-eszközökkel (tartalék: helyi Ollama), a válasz felolvasva; `voice_assistant` szövegből; config:
+  `"voice": {"dictation", "hotkey", "wake", "backend"}`; a `claude` parancssori módnak bejelentkezve kell lennie
+  gyorsítás: a large-v3 állandóan betöltve (induláskor, a WinRT előtt – fordítva összeomlik); a válasz mondatonként szól
+  (stream-json; eszközhívásnál „Egy pillanat, megnézem”); gyors ébresztőszó: openWakeWord-beágyazás + saját MLP
+  (`wake_train.py`, nehéz negatív bányászattal), 80 ms-onként, ~0,1–0,2 s késéssel; `voice_enroll` = saját hangminták
+  → újratanítás; `"wake_engine": "auto"` = 6+ saját mintától a gyors, addig a whisper-alapú detektor
+  „Figyelj”-hallgatás kapcsolója (`out/voice/_hallgat.json`, újraindítás után is megmarad): Ctrl+Alt+F (`"wake_hotkey"`),
+  tálcamenü pipa, `voice_dictation(action="wake_on"/"wake_off")`, hanggal „Figyelj, ne figyelj / hallgass el”; kikapcsolva
+  a mikrofont is elengedi (a Ctrl+Alt+D diktálás megy); párbeszédben „elég / vége / mégse / zárd be” lezárja a beszélgetést;
+  a whisper csend/zaj-hallucinációi („Köszönöm, hogy megnéztétek”) eldobva; a beszélgetés végén mély csippanás
+- **Kész (2026-10-20):** `system` – hogy a hangasszisztens (amely csak hub-eszközöket kap) végre is hajtsa a kéréseket:
+  `system_open` (act: URL/domain → alapértelmezett böngésző; fájl/mappa → társított program; programnév → Start menü:
+  Get-StartApps + .lnk, kis/nagybetű és ékezet nélkül; magyar becenevek: böngésző, jegyzettömb, számológép, fájlkezelő,
+  beállítások, letöltések/dokumentumok/asztal mappa; futtatható fájlt útvonalról nem indít, csak http(s)/mailto/ms-settings
+  protokoll; `dry_run` a tesztekhez), `system_apps` (read: Start menü-nevek, szűrhető), `system_volume` (act: Core Audio
+  comtypes-szal, saját szálon/COM-lakásban; level, ±change, mute), `system_power` (**danger**: shutdown/restart `shutdown /t N`-nel
+  – N>0 esetén a Windows a programokat is bezárja –, sleep 10 mp múlva, lock, cancel = `shutdown /a` + függő alvás törlése)
+- **Ötletlista:** `audio`/`stems`/`score` (zene), `video` (vágás, fejezetek), `image`, `math`, `sim`, `quantum` (Qiskit), `chem`, `data`, `research`
+- **CAD:** 1) **kész (2026-10-20):** `dxf` plugin (ezdxf + matplotlib): `dxf_info` → célzott `dxf_layers`/`dxf_texts`/`dxf_entities`,
+  `dxf_bom` (darabjegyzék beágyazott blokkokkal, `merge` = cikkszám szerint), `dxf_attribs` (attribútum-táblázat → CSV), `dxf_write`/`dxf_add`
+  (JSON-elemlistából), `dxf_render` (PNG), `dxf_open` (Alnico). Az Alnicóból átvett szabályok: az eredeti rajzot sosem írja felül
+  (`dxf_add` → `<név>_mod.dxf`); hossz rétegenként mm-ben, blokkokba ágyazva is (a blokkon belüli „0” réteg a beszúrásét örökli);
+  `*D…` névtelen blokk nem darab; CSV pontosvesszővel + UTF-8 BOM;
+  2) **kész (2026-10-20), élőben kipróbálva, kiadva az Alnico 0.5.34-ben:** az Alnico helyi automatizálási felülete (`automata.js` + `renderer/cadautomata.js`):
+  csak 127.0.0.1:8767, token a `%APPDATA%\alnico-pdf\automata.json`-ban; a Hub `alnico` pluginja: `alnico_status`, `alnico_drawing`,
+  `alnico_open`, `alnico_cmd` (sorok a parancssorba, mint gépelve; vissza a kiírt sorok); 3) **kész (2026-10-20):** `stl` plugin – 2D profilból 3D nyomtatható test, új függőség nélkül (ezdxf earcut):
+  `stl_extrude` (zárt kontúrok lyukakkal/szigetekkel, vonal/ív darabokból összefűzve is), `stl_revolve` (Y tengely körül, részszöggel véglapokkal),
+  `stl_info` (vízzáró + következetes lapirány, térfogat, méret), `stl_preview` (PNG); kimenet mm-ben, Z-felfelé
 - **3. kör:** mini PC mint állandó központ, a laptop/munkahelyi PC/telefon csomópontként; jóváhagyás telefonon; eseményindítók (e-mail, fájlváltozás, nyomtatás vége); Bambu nyomtató plugin

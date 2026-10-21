@@ -46,6 +46,33 @@
     },
     "docs": {
       "enabled": true
+    },
+    "state": {
+      "enabled": true
+    },
+    "index": {
+      "enabled": true
+    },
+    "dxf": {
+      "enabled": true
+    },
+    "alnico": {
+      "enabled": true
+    },
+    "stl": {
+      "enabled": true
+    },
+    "tts": {
+      "enabled": true
+    },
+    "voice": {
+      "enabled": true
     }
+  },
+  "voice": {
+    "dictation": true,
+    "hotkey": "Ctrl+Alt+D",
+    "wake": "figyelj",
+    "backend": "claude"
   }
 }

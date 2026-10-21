@@ -1,0 +1,13 @@
+{
+  "name": "tts",
+  "version": "0.1.0",
+  "description": "Magyar felolvasás (Windows Szabolcs hang, helyben): azonnal a hangszórón, vagy szöveg/dokumentum → WAV/MP3",
+  "tools": [
+    {"name": "tts_speak", "level": "act"},
+    {"name": "tts_stop", "level": "act"},
+    {"name": "tts_save", "level": "act"},
+    {"name": "tts_file", "level": "act"},
+    {"name": "tts_voices", "level": "read"}
+  ],
+  "deps": ["winrt-Windows.Media.SpeechSynthesis==3.2.1", "winrt-Windows.Storage.Streams==3.2.1", "imageio-ffmpeg", "markitdown[docx,pptx,pdf,outlook]"]
+}

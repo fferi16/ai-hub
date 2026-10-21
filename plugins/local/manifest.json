@@ -1,12 +1,14 @@
 {
   "name": "local",
-  "version": "0.1.0",
-  "description": "Helyi LLM (Ollama): ingyenes kérdés-válasz, hosszú szövegek háttér-összefoglalása szakaszonként, folyamatjelzővel",
+  "version": "0.2.0",
+  "description": "Helyi LLM (Ollama): ingyenes kérdés-válasz, hosszú szövegek háttér-összefoglalása, képek leírása/összehasonlítása",
   "tools": [
     {"name": "local_models", "level": "read"},
     {"name": "local_ask", "level": "read"},
+    {"name": "local_see", "level": "read"},
+    {"name": "local_see_folder", "level": "act"},
     {"name": "local_summarize", "level": "act"},
     {"name": "local_job", "level": "read"}
   ],
-  "deps": ["httpx"]
+  "deps": ["httpx", "Pillow"]
 }

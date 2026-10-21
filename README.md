@@ -13,9 +13,18 @@ ha hiányzik egy képesség, Claude pluginként megírja, leteszteli és bekapcs
 | `media` | videó/hang **leirata** (faster-whisper large-v3, GPU-n vagy CPU-n), **diák/kulcsképkockák** kinyerése, Windows-értesítő |
 | `office` | Word/Excel/PowerPoint → **PDF** (elakadásvédelemmel), Excel-olvasás és **cellaszintű összehasonlítás**, Word-szöveg |
 | `pdf` | szöveg, sorok/szavak **koordinátával**, **táblázatok**, regex-keresés, oldal képként |
-| `local` | **helyi LLM** (Ollama): ingyenes kérdés-válasz, hosszú szövegek háttér-összefoglalása |
+| `local` | **helyi LLM** (Ollama): ingyenes kérdés-válasz, hosszú szövegek háttér-összefoglalása, **képek leírása** és összehasonlítása helyi képi modellel |
 | `study` | tanulókártyák a jegyzetből, **Anki-pakli** (.apkg), egyfájlos **HTML-kvíz** |
 | `watch` | **mappafigyelő**: új videó → leirat + képkockák + összefoglaló, magától |
+| `docs` | dokumentum (Word/Excel/PowerPoint/PDF/Outlook/HTML) → **tömör Markdown**, gyorsítótárral |
+| `state` | **munkamenet-átadó jegyzet** projektenként: mi kész, mi a következő lépés, döntések, nyitott kérdések |
+| `index` | **kereshető index** a mappákból (szöveg + Word/Excel/PPT/PDF/Outlook), ékezet-független, növekményes frissítéssel |
+| `dxf` | **DXF-rajzok**: rétegek, szövegek, **darabjegyzék** (cikkszám szerint is), attribútum-CSV, rajzolás, PNG-kép, megnyitás a CAD-programban |
+| `alnico` | a saját CAD-program (**Alnico**) **élő vezérlése**: megnyitott rajz lekérdezése, parancsok a parancssorba |
+| `stl` | **2D profilból 3D nyomtatás**: DXF-kontúr kihúzása vagy forgatása → ellenőrzött, vízzáró STL, előnézettel |
+| `tts` | **magyar felolvasás** helyben (Windows Szabolcs hang): azonnal a hangszórón, vagy szöveg/dokumentum → WAV/MP3 |
+| `voice` | **magyar beszédfelismerés** helyben (whisper large-v3): **diktálás Ctrl+Alt+D-vel** bármelyik programba, és **hangasszisztens „Figyelj”-re** (Claude válaszol, hangosan; ki/be: Ctrl+Alt+F vagy a tálcamenü) |
+| `system` | **a gép kezelése**: weboldal, fájl, mappa vagy program megnyitása név alapján (Start menü, ékezet nélkül is), **hangerő**, leállítás/újraindítás/alvás/zárolás (jóváhagyással) – így a hangasszisztens végre is hajtja a kérést |
 | `look` | programok és weboldalak megnyitása, kiolvasása, kattintás (web, Windows, OCR, helyi képi modell) |
 
 Mellette: **lebegő folyamatjelző** (minden hosszabb munka százalékkal / hátralévő idővel), jóváhagyás

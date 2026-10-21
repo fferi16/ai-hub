@@ -26,6 +26,13 @@ a felhasználó gépén, a hivatalos forrásból (PyPI) tölti le, változtatás
 | pdfplumber, pdfminer.six | `pdf` – szöveg, táblázatok | MIT |
 | pypdfium2 (PDFium) | `pdf` – oldal képként | Apache-2.0 / BSD-3-Clause |
 | genanki | `study` – Anki-pakli | MIT |
+| winrt-Windows.Media.SpeechSynthesis | `tts` – Windows beszédszintézis | MIT |
+| sounddevice (+ PortAudio) | `voice` – mikrofonfelvétel | MIT |
+| openwakeword (+ a melspectrogram és a speech_embedding ONNX-modellje) | `voice` – gyors ébresztőszó-felismerés | Apache-2.0 |
+| scikit-learn, scipy | `voice` – az ébresztőszó-modell tanítása | BSD-3-Clause |
+| comtypes | `system` – hangerő (Windows Core Audio COM) | MIT |
+| ezdxf | `dxf` – DXF olvasás/írás | MIT |
+| matplotlib (+ numpy, pillow, contourpy, kiwisolver, fonttools, cycler, pyparsing) | `dxf` – rajz → PNG | PSF-alapú (matplotlib) / BSD / MIT |
 | markitdown (+ mammoth, python-pptx, pandas, xlrd, xlsxwriter, magika, onnxruntime, lxml, beautifulsoup4) | `docs` – dokumentum → Markdown | MIT / BSD / Apache-2.0 |
 
 ## Modellek és külső programok (nem részei a repónak)

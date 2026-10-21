@@ -1,0 +1,37 @@
+{
+  "name": "voice",
+  "version": "0.2.0",
+  "description": "Magyar beszéd helyben: diktálás Ctrl+Alt+D-vel, hangasszisztens „Figyelj”-re (gyors ébresztőszó-modell), mikrofon → szöveg",
+  "tools": [
+    {
+      "name": "voice_listen",
+      "level": "act"
+    },
+    {
+      "name": "voice_transcribe",
+      "level": "read"
+    },
+    {
+      "name": "voice_dictation",
+      "level": "act"
+    },
+    {
+      "name": "voice_assistant",
+      "level": "act"
+    },
+    {
+      "name": "voice_enroll",
+      "level": "act"
+    }
+  ],
+  "deps": [
+    "faster-whisper",
+    "sounddevice",
+    "imageio-ffmpeg",
+    "pywin32",
+    "numpy",
+    "openwakeword==0.6.0",
+    "scikit-learn",
+    "scipy"
+  ]
+}

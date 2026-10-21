@@ -1,0 +1,18 @@
+{
+  "name": "dxf",
+  "version": "0.1.0",
+  "description": "DXF rajzok: áttekintés, rétegek, szövegek, darabjegyzék, attribútum-CSV, írás, PNG, megnyitás Alnicóban",
+  "tools": [
+    {"name": "dxf_info", "level": "read"},
+    {"name": "dxf_layers", "level": "read"},
+    {"name": "dxf_texts", "level": "read"},
+    {"name": "dxf_entities", "level": "read"},
+    {"name": "dxf_bom", "level": "read"},
+    {"name": "dxf_attribs", "level": "act"},
+    {"name": "dxf_write", "level": "act"},
+    {"name": "dxf_add", "level": "act"},
+    {"name": "dxf_render", "level": "act"},
+    {"name": "dxf_open", "level": "act"}
+  ],
+  "deps": ["ezdxf", "matplotlib"]
+}
