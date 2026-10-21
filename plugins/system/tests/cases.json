@@ -16,6 +16,7 @@
   {"tool": "system_apps", "args": {}, "expect": {"ok": true, "n": {"$gt": 5}}},
   {"tool": "system_apps", "args": {"query": "nincsilyenprogram123"}, "expect": {"ok": true, "n": 0}},
   {"tool": "system_apps", "args": {"limit": 3}, "expect": {"ok": true, "more": {"$gt": 0}}},
+  {"tool": "system_status", "args": {}, "expect": {"ok": true, "cpu_pct": {"$gt": -1, "$lt": 101}, "ram_pct": {"$gt": 0, "$lt": 101}}, "contains": "disk_c"},
   {"tool": "system_volume", "args": {}, "expect": {"ok": true, "level": {"$gt": -1, "$lt": 101}}},
   {"tool": "system_volume", "args": {"level": 150}, "expect": {"ok": false}, "contains": "0 és 100"},
   {"tool": "system_volume", "args": {"change": 300}, "expect": {"ok": false}},

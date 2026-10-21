@@ -26,6 +26,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path[:0] = [str(ROOT), str(HERE)]
 import engine  # noqa: E402
+import hud  # noqa: E402  (a Jarvis-ablak eseményei)
+import quick  # noqa: E402  (gyors út: gyakori parancsok a Claude nélkül)
 
 try:
     from hubkit import progress
@@ -230,6 +232,7 @@ class Speaker:
         import winsound
         winsound.PlaySound(None, 0)
         _speaking_until = 0.0
+        hud.send("hush")
         return was
 
     def _run(self) -> None:
@@ -250,6 +253,10 @@ class Speaker:
                 path.write_bytes(wav)
                 dur = tts._duration(wav)
                 _speaking_until = time.time() + dur + 0.6
+                try:
+                    hud.send("say", text=text[:300], env=hud.envelope(wav), fps=30)
+                except Exception:  # noqa: BLE001 – a kijelzés nem állíthatja meg a felolvasást
+                    pass
                 winsound.PlaySound(str(path), winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
                 end = time.time() + dur
                 while time.time() < end and not self._stop.is_set():
@@ -309,8 +316,11 @@ def transcribe_command(audio) -> str:
     text = engine.transcribe(big_model(), audio, hotwords=vcfg().get("command_hotwords", COMMAND_HOTWORDS))
     log(f"kérés leirata: {text!r}")
     if HALLUCINATION.search(text):
+        hud.send("state", state="idle")
         log("whisper-hallucináció (csendből/zajból), eldobva")
         return ""
+    if text.strip():
+        hud.send("heard", text=text)
     return text
 
 
@@ -334,6 +344,7 @@ def handle_wake(segment, rest_hint: str, backend: str, word: str, strong: bool =
         floor = engine.voice_level(segment) * 0.35
         globals()["_last_floor"] = floor
         log(f"hangerő: {floor / 0.35:.4f} → küszöb {floor:.4f}")
+        hud.send("state", state="listen")
         if strong and len(rest_hint.split()) < 2:
             # BIZTOS ébredés, kérés nélkül („Figyelj."): azonnal csippan és veszi a kérést, a nagy modell
             # közben párhuzamosan töltődik – így a betöltés ideje alatt mondott kérés sem vész el
@@ -380,6 +391,7 @@ def handle_wake(segment, rest_hint: str, backend: str, word: str, strong: bool =
         answer(command, backend)
     except Exception as e:  # noqa: BLE001
         show(f"hiba: {e}"[:80], "error", 10)
+        hud.send("state", state="error")
         state(state="hiba", reason=f"{type(e).__name__}: {e}"[:200])
         log(traceback.format_exc())
     finally:
@@ -390,15 +402,203 @@ MAX_TURNS = 5        # párbeszédben ennyi kör mehet egymás után ébresztős
 _last_floor = 0.0    # a beszélő hangerejéből számolt küszöb (a tévé ne tartsa nyitva a felvételt)
 
 
-def answer(command: str, backend: str, turn: int = 1) -> None:
+_sysp = None
+
+
+def _system():
+    """A system plugin modulja (a célpont-feloldáshoz; a végrehajtás a Hubon át megy)."""
+    global _sysp
+    if _sysp is None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("system_plugin_voice", ROOT / "plugins" / "system" / "plugin.py")
+        _sysp = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_sysp)
+    return _sysp
+
+
+def _silent_say(text: str) -> None:
+    """Néma válasz (gépelt kérésre): csak kiírva, a gömb a szöveg ritmusára „beszél"."""
+    hud.send("say", text=text[:300], env=hud.text_envelope(text), fps=30)
+
+
+# ---- magától szól (mint Jarvis): gépállapot és kész munkák figyelése ---------------------------
+
+def quiet_now() -> bool:
+    """Csendes órák ("voice": {"quiet_hours": "22-7"}) vagy kikapcsolt figyelés: csak a gömb jelez, hang nélkül."""
+    if not listening():
+        return True
+    try:
+        a, b = (int(x) for x in str(vcfg().get("quiet_hours", "22-7")).split("-"))
+    except ValueError:
+        return False
+    h = time.localtime().tm_hour
+    return (a <= h or h < b) if a > b else (a <= h < b)
+
+
+def notify(text: str) -> None:
+    log(f"jelzés: {text}")
+    if quiet_now() or _busy.locked() or SPEAKER.active():
+        hud.send("notify", text=text, env=hud.text_envelope(text), fps=30)
+    else:
+        hud.send("notify", text=text)
+        speak(text)
+
+
+def watcher() -> None:
+    """30 mp-enként: akku, lemez, memória, GPU-hőfok, internet, és a 2 percnél hosszabb munkák vége (out/progress)."""
+    import psutil
+    seen, last, ram_hi, online = set(), {}, 0, True
+    start = time.time()
+
+    def once(key: str, every_s: float) -> bool:
+        if time.time() - last.get(key, 0) < every_s:
+            return False
+        last[key] = time.time()
+        return True
+
+    batt_level = 100
+    while True:
+        time.sleep(30)
+        try:
+            b = psutil.sensors_battery()
+            if b is not None:
+                if b.power_plugged:
+                    batt_level = 100
+                else:
+                    for lim in (20, 10, 5):
+                        if b.percent <= lim < batt_level:
+                            batt_level = lim
+                            notify(f"Feri, az akkumulátor {round(b.percent)} százalékon van, nincs töltőn.")
+                            break
+            if psutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\").free < 10 * 2**30 and once("disk", 6 * 3600):
+                notify("Kevés a hely a C meghajtón: tíz gigabájt alatt.")
+            ram_hi = ram_hi + 1 if psutil.virtual_memory().percent >= 92 else 0
+            if ram_hi >= 2 and once("ram", 1800):
+                notify("A memória majdnem tele van.")
+            if once("gpu", 60):
+                g = _gpu_temp()
+                if g is not None and g >= 85 and once("gpu_hot", 900):
+                    notify(f"Melegszik a videókártya: {g} fok.")
+            now_online = _online()
+            if now_online != online:
+                online = now_online
+                notify("Megszakadt az internetkapcsolat." if not online else "Az internet újra elérhető.")
+            for f in (ROOT / "out" / "progress").glob("*.json"):
+                if f.name in seen:
+                    continue
+                try:
+                    rec = json.loads(f.read_text("utf-8"))
+                except (OSError, ValueError):
+                    continue
+                if (rec.get("state") in ("done", "error") and rec.get("updated", 0) > max(start, time.time() - 90)
+                        and rec.get("updated", 0) - rec.get("started", 0) >= 120 and not f.name.startswith("voice-")):
+                    seen.add(f.name)
+                    title = str(rec.get("title", "egy munka"))[:60]
+                    notify(f"Elkészült: {title}." if rec["state"] == "done" else f"Hibával állt le: {title}.")
+        except Exception:  # noqa: BLE001 – a figyelő nem állhat le egy hiba miatt
+            log("figyelő hiba: " + traceback.format_exc())
+
+
+def _gpu_temp() -> int | None:
+    import shutil
+    import subprocess
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return None
+    try:
+        r = subprocess.run([exe, "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"], capture_output=True,
+                           text=True, timeout=5, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        return int(r.stdout.split()[0])
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError):
+        return None
+
+
+def _online() -> bool:
+    import socket
+    for host in ("1.1.1.1", "8.8.8.8"):
+        try:
+            with socket.create_connection((host, 53), timeout=1.5):
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def listen_now(backend: str) -> None:
+    """Kattintás a gömbre: mint a „Figyelj" – csippanás, a kérés felvétele, válasz."""
+    if not _busy.acquire(blocking=False):
+        return
+    import winsound
+    try:
+        beep_during(1046)
+        show("mondd… (csend = kész)")
+        hud.send("state", state="listen")
+        audio, _ = engine.record(max_s=15, silence_s=1.5, wait_s=7, floor=_last_floor)
+        if audio is None:
+            winsound.Beep(440, 150)
+            hud.send("state", state="idle")
+            log("kattintás után nem jött kérés")
+            return
+        answer(transcribe_command(audio), backend)
+    except Exception as e:  # noqa: BLE001
+        show(f"hiba: {e}"[:80], "error", 10)
+        hud.send("state", state="error")
+        log(traceback.format_exc())
+    finally:
+        _busy.release()
+
+
+def ask_typed(text: str, backend: str, voice: bool) -> None:
+    """Gépelt kérés az ablakból: ugyanaz, mint a kimondott, alapból hang nélkül."""
+    if not _busy.acquire(blocking=False):
+        hud.send("result", ok=False, text="épp dolgozom egy másik kérésen")
+        return
+    try:
+        log(f"gépelt kérés: {text!r}")
+        hud.send("heard", text=text)
+        answer(text, backend, silent=not voice)
+    except Exception as e:  # noqa: BLE001
+        show(f"hiba: {e}"[:80], "error", 10)
+        hud.send("state", state="error")
+        log(traceback.format_exc())
+    finally:
+        _busy.release()
+
+
+def command_loop(backend: str) -> None:
+    """Az ablak parancsai UDP-n (127.0.0.1:hud.CMD_PORT)."""
+    import socket
+    sk = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sk.bind(("127.0.0.1", hud.CMD_PORT))
+    except OSError:
+        log(f"a {hud.CMD_PORT} port foglalt – az ablak parancsai nem érkeznek meg")
+        return
+    while True:
+        data, _ = sk.recvfrom(16384)
+        try:
+            m = json.loads(data.decode("utf-8"))
+        except ValueError:
+            continue
+        if m.get("cmd") == "listen":
+            threading.Thread(target=listen_now, args=(backend,), daemon=True).start()
+        elif m.get("cmd") == "ask" and str(m.get("text", "")).strip():
+            threading.Thread(target=ask_typed, args=(str(m["text"]).strip()[:2000], backend, bool(m.get("voice"))),
+                             daemon=True).start()
+
+
+def answer(command: str, backend: str, turn: int = 1, silent: bool = False) -> None:
     """A leírt kérés → asszisztens → a válasz mondatonként szól (az első mondat már a válasz vége előtt).
     PÁRBESZÉD: ha a válasz kérdéssel végződik, felolvasás után magától meghallgatja a választ (csippanás,
-    nem kell újra „Figyelj"); csend → vége. Ha a gyorsbillentyűvel elhallgattatták, nem kérdez tovább."""
+    nem kell újra „Figyelj"); csend → vége. Ha a gyorsbillentyűvel elhallgattatták, nem kérdez tovább.
+    silent: gépelt kérés – nincs felolvasás, csippanás és visszahallgatás; a válasz a Jarvis-ablakban látszik."""
     global _recording
     import assistant
+    out = _silent_say if silent else speak
     if not command.strip():
         show("nem értettem a kérést", "error", 4)
         log("a kérés leirata üres (csend vagy zaj)")
+        hud.send("state", state="idle")
         return
     import winsound
     plain = " ".join(re.findall(r"\w+", _norm(command)))
@@ -407,18 +607,34 @@ def answer(command: str, backend: str, turn: int = 1) -> None:
         log(f"figyelés kikapcsolva hanggal: {command!r}")
         return
     if turn > 1 and plain in END_WORDS:
+        hud.send("state", state="idle")
         winsound.Beep(523, 120)
         show("párbeszéd vége", "done", 3)
         log(f"párbeszéd vége ({command!r})")
         return
     show("gondolkodom: " + command[:60])
+    hud.send("state", state="think")
     state(state="asszisztens", last_q=command)
-    res = assistant.ask(command, backend, on_sentence=speak)
+    res = None
+    if vcfg().get("quick", True):        # gyakori parancsok helyben, a Claude nélkül
+        try:
+            t0 = time.time()
+            q = quick.handle(command, _system())
+            if q is not None:
+                out(q)
+                res = {"answer": q, "backend": "helyi", "seconds": round(time.time() - t0, 1), "first_s": None}
+        except Exception:  # noqa: BLE001 – hiba esetén a Claude intézi
+            log("gyors út hiba: " + traceback.format_exc())
+    if res is None:
+        res = assistant.ask(command, backend, on_sentence=out)
     show(res["answer"][:70] + ("…" if len(res["answer"]) > 70 else ""), "done", 12)
     state(state="kész", last_q=command, last_a=res["answer"], backend=res["backend"], ask_s=res["seconds"],
           first_s=res.get("first_s"))
     log(f"asszisztens ({res['backend']}, első mondat {res.get('first_s')} s, teljes {res['seconds']} s): "
         f"{command[:80]}")
+    if silent:
+        hud.send("state", state="done")
+        return
     # megvárjuk, amíg a válasz elhangzik
     t0 = time.time()
     while SPEAKER.active() and time.time() - t0 < 180:
@@ -428,11 +644,13 @@ def answer(command: str, backend: str, turn: int = 1) -> None:
         return
     if turn >= MAX_TURNS or not res["answer"].rstrip().endswith("?"):
         winsound.Beep(523, 120)         # vége: újra a „Figyelj"-re vár
+        hud.send("state", state="idle")
         return
     # visszakérdezett: hallgatjuk a választ
     time.sleep(0.3)                     # a saját hangja ne kerüljön a felvétel elejére
     beep_during(1318)
     show("válaszolj… (csend = vége)")
+    hud.send("state", state="listen")
     _stop.clear()
     _recording = True
     try:
@@ -443,6 +661,7 @@ def answer(command: str, backend: str, turn: int = 1) -> None:
         winsound.Beep(440, 150)
         show("párbeszéd vége", "done", 3)
         log("párbeszéd vége (nem jött válasz)")
+        hud.send("state", state="idle")
         return
     answer(transcribe_command(audio), backend, turn + 1)
 
@@ -482,7 +701,8 @@ def set_listening(on: bool) -> None:
 
 
 def fast_model_path(word: str) -> Path:
-    return HERE / "models" / f"{word}.npz"
+    import wake_train
+    return wake_train.model_path(word)
 
 
 def use_fast(word: str) -> bool:
@@ -554,6 +774,7 @@ def fast_loop(word: str, backend: str) -> None:
             try:
                 threading.Thread(target=winsound.Beep, args=(1046, 90), daemon=True).start()
                 show("mondd… (csend = kész)")
+                hud.send("state", state="listen")
                 floor = engine.voice_level(ring[-engine.RATE:]) * 0.35
                 globals()["_last_floor"] = floor
                 log(f"ébredés (gyors, pontszám {sc:.2f}, küszöb a kéréshez {floor:.4f})")
@@ -578,6 +799,7 @@ def fast_loop(word: str, backend: str) -> None:
                     winsound.Beep(440, 150)
                     show("nem hallottam kérést", "error", 4)
                     log("ébredés után nem jött kérés")
+                    hud.send("state", state="idle")
                     _busy.release()
                     continue
                 audio = np.concatenate(frames[3:])     # a csippanás (első 0,24 s) ne zavarja a leiratot
@@ -597,6 +819,7 @@ def _finish_fast(audio, word: str, backend: str) -> None:
         answer(rest if ok else text, backend)
     except Exception as e:  # noqa: BLE001
         show(f"hiba: {e}"[:80], "error", 10)
+        hud.send("state", state="error")
         log(traceback.format_exc())
     finally:
         _busy.release()
@@ -728,6 +951,14 @@ def main() -> int:
         state(model="betöltve")
         log("a beszédmodell betöltve" + (" (állandóan)" if KEEP_LOADED else ""))
     threading.Thread(target=preload, name="preload", daemon=True).start()
+    if wake and vcfg().get("jarvis", True):    # a Jarvis-ablak (grafikus felület); "jarvis": false kikapcsolja
+        exe = Path(sys.executable).with_name("pythonw.exe")
+        import subprocess
+        subprocess.Popen([str(exe if exe.exists() else sys.executable), str(HERE / "jarvis.py"), str(os.getpid())],
+                         cwd=str(HERE), close_fds=True)
+        threading.Thread(target=command_loop, args=(backend,), name="hud-cmd", daemon=True).start()
+    if wake and vcfg().get("proactive", True):  # magától szól: "proactive": false kikapcsolja
+        threading.Thread(target=watcher, name="watcher", daemon=True).start()
     if wake:
         def guarded():
             fast_failed, was = False, None
@@ -742,6 +973,7 @@ def main() -> int:
                             show(f"„{wake}” figyelés: {'BE' if on else 'KI'}", "done", 3)
                             log(f"„{wake}” figyelés: {'be' if on else 'ki'}kapcsolva")
                         state(listening=on)
+                        hud.send("state", state="idle" if on else "off")
                         was = on
                     if not on:
                         time.sleep(0.5)

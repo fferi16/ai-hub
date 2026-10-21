@@ -31,6 +31,7 @@ a felhasználó gépén, a hivatalos forrásból (PyPI) tölti le, változtatás
 | openwakeword (+ a melspectrogram és a speech_embedding ONNX-modellje) | `voice` – gyors ébresztőszó-felismerés | Apache-2.0 |
 | scikit-learn, scipy | `voice` – az ébresztőszó-modell tanítása | BSD-3-Clause |
 | comtypes | `system` – hangerő (Windows Core Audio COM) | MIT |
+| psutil | `system` – gépállapot (CPU, memória, akku, lemez) | BSD-3-Clause |
 | ezdxf | `dxf` – DXF olvasás/írás | MIT |
 | matplotlib (+ numpy, pillow, contourpy, kiwisolver, fonttools, cycler, pyparsing) | `dxf` – rajz → PNG | PSF-alapú (matplotlib) / BSD / MIT |
 | markitdown (+ mammoth, python-pptx, pandas, xlrd, xlsxwriter, magika, onnxruntime, lxml, beautifulsoup4) | `docs` – dokumentum → Markdown | MIT / BSD / Apache-2.0 |

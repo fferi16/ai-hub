@@ -1,12 +1,13 @@
 {
   "name": "system",
-  "version": "0.1.0",
-  "description": "A gép kezelése: program, weboldal, fájl/mappa megnyitása, hangerő, leállítás/újraindítás/alvás/zárolás (jóváhagyással)",
+  "version": "0.2.0",
+  "description": "A gép kezelése: program, weboldal, fájl/mappa megnyitása, hangerő, gépállapot, leállítás/újraindítás/alvás/zárolás (jóváhagyással)",
   "tools": [
     {"name": "system_open", "level": "act"},
     {"name": "system_apps", "level": "read"},
+    {"name": "system_status", "level": "read"},
     {"name": "system_volume", "level": "act"},
     {"name": "system_power", "level": "danger"}
   ],
-  "deps": ["comtypes"]
+  "deps": ["comtypes", "psutil"]
 }

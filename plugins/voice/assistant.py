@@ -31,6 +31,21 @@ SYSTEM = ("Hangasszisztens vagy Feri Windows-gépén. A kérés beszédből jöt
           "Weboldal TARTALMÁT (hírek, cikkek, adatok) a look_open eszközzel olvasd ki – más webes eszközöd nincs; "
           "a system_open csak megmutatja Ferinek a böngészőben, azt akkor használd, ha megnyitást kér.")
 
+# "voice": {"persona": "jarvis"} (alap) – a filmbeli J.A.R.V.I.S. hangneme; "persona": "" = semleges
+PERSONA = {"jarvis": (" Stílusod a filmbeli J.A.R.V.I.S.-é: udvarias, nyugodt, tömör, finom száraz humorral (csak ha "
+                      "illik). Ferit néha a nevén szólítod, de nem minden válaszban. Elvégzett műveletnél elég egy rövid "
+                      "nyugtázás (például: „Máris, Feri.” vagy „Kész, megnyitottam.”). Rossz hírt egyenesen, "
+                      "nyugodtan mondasz. Sosem hízelegsz, sosem mentegetőzöl hosszan.")}
+
+
+def system_prompt() -> str:
+    try:
+        persona = json.loads((ROOT / "config.json").read_text("utf-8")).get("voice", {}).get("persona", "jarvis")
+    except (OSError, ValueError):
+        persona = "jarvis"
+    return SYSTEM + PERSONA.get(persona or "", "")
+
+
 _session = {"id": None, "ts": 0.0}
 _local_hist: list[dict] = []
 
@@ -61,7 +76,7 @@ def ask_claude(text: str, timeout: float = 150) -> str:
     if not exe:
         raise NotAvailable("a claude parancs nincs telepítve")
     args = [exe, "-p", text, "--output-format", "json", "--strict-mcp-config", "--mcp-config", str(_mcp_config()),
-            "--allowedTools", "mcp__hub__*", "--max-turns", "10", "--append-system-prompt", SYSTEM]
+            "--allowedTools", "mcp__hub__*", "--max-turns", "10", "--append-system-prompt", system_prompt()]
     if _session["id"] and time.time() - _session["ts"] < CONTINUE_S:
         args += ["--resume", _session["id"]]
     r = subprocess.run(args, capture_output=True, stdin=subprocess.DEVNULL, timeout=timeout, cwd=str(ROOT),
@@ -79,6 +94,55 @@ def ask_claude(text: str, timeout: float = 150) -> str:
     return str(res.get("result") or "").strip()
 
 
+_hub_calls: set = set()
+
+
+def _hud_tools(o: dict) -> None:
+    try:
+        import hud
+    except ImportError:
+        return
+    for b in (o.get("message") or {}).get("content") or []:
+        if not isinstance(b, dict):
+            continue
+        if b.get("type") == "tool_use" and str(b.get("name", "")).startswith("mcp__hub__"):
+            _hub_calls.add(b.get("id"))
+            hud.send("tool", name=str(b.get("name", "")).replace("mcp__hub__", ""), input=b.get("input") or {})
+            _project(hud, b.get("input") or {})
+        elif b.get("type") == "tool_result" and b.get("tool_use_id") in _hub_calls:
+            c = b.get("content")
+            text = " ".join(x.get("text", "") for x in c if isinstance(x, dict)) if isinstance(c, list) else str(c or "")
+            ok = not b.get("is_error") and '"ok":false' not in text.replace(" ", "")
+            hud.send("result", text=re.sub(r"\s+", " ", text)[:160], ok=ok)
+            try:
+                _project(hud, json.loads(text))
+            except ValueError:
+                pass
+
+
+IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
+
+
+def _project(hud, data) -> None:
+    """Hologram-kivetítés: ha egy eszköz képet adott (rajz, PDF-oldal, képernyőkép), az ablak mellé úszik."""
+    found = []
+
+    def walk(v):
+        if isinstance(v, dict):
+            for x in v.values():
+                walk(x)
+        elif isinstance(v, list):
+            for x in v[:20]:
+                walk(x)
+        elif isinstance(v, str) and v.lower().endswith(IMG_EXT) and len(v) < 400 and Path(v).is_file():
+            found.append(v)
+
+    walk(data)
+    for f in dict.fromkeys(found).keys():
+        hud.send("project", path=f, title=Path(f).name)
+        break
+
+
 SENTENCE_END = re.compile(r"(?<=[.!?…])\s+(?=[A-ZÁÉÍÓÖŐÚÜŰ0-9„\"(])")
 
 
@@ -90,7 +154,7 @@ def ask_claude_stream(text: str, on_sentence, timeout: float = 150) -> str:
         raise NotAvailable("a claude parancs nincs telepítve")
     args = [exe, "-p", text, "--output-format", "stream-json", "--verbose", "--include-partial-messages",
             "--strict-mcp-config", "--mcp-config", str(_mcp_config()), "--allowedTools", "mcp__hub__*",
-            "--max-turns", "10", "--append-system-prompt", SYSTEM]
+            "--max-turns", "10", "--append-system-prompt", system_prompt()]
     if _session["id"] and time.time() - _session["ts"] < CONTINUE_S:
         args += ["--resume", _session["id"]]
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
@@ -127,6 +191,8 @@ def ask_claude_stream(text: str, on_sentence, timeout: float = 150) -> str:
                 elif e.get("type") == "content_block_stop" and buf.strip():
                     buf += " "
                     flush(True)          # egy szövegblokk vége (pl. eszközhívás előtt): ami maradt, menjen
+            elif o.get("type") in ("assistant", "user"):
+                _hud_tools(o)            # a Jarvis-ablak naplója: eszközhívás kódként, eredmény röviden
             elif o.get("type") == "result":
                 result = o
     finally:
@@ -152,7 +218,7 @@ def ask_local(text: str) -> str:
     import local_ollama
     hist = "".join(f"Kérdés: {h['q']}\nVálasz: {h['a']}\n" for h in _local_hist[-4:])
     r = local_ollama.chat((hist + f"Kérdés: {text}\nVálasz:") if hist else text, local_ollama.DEFAULT_MODEL,
-                          SYSTEM, 300, 0.4, timeout=110)
+                          system_prompt(), 300, 0.4, timeout=110)
     ans = r["text"].strip()
     _local_hist.append({"q": text, "a": ans})
     return ans

@@ -23,7 +23,7 @@ ha hiányzik egy képesség, Claude pluginként megírja, leteszteli és bekapcs
 | `alnico` | a saját CAD-program (**Alnico**) **élő vezérlése**: megnyitott rajz lekérdezése, parancsok a parancssorba |
 | `stl` | **2D profilból 3D nyomtatás**: DXF-kontúr kihúzása vagy forgatása → ellenőrzött, vízzáró STL, előnézettel |
 | `tts` | **magyar felolvasás** helyben (Windows Szabolcs hang): azonnal a hangszórón, vagy szöveg/dokumentum → WAV/MP3 |
-| `voice` | **magyar beszédfelismerés** helyben (whisper large-v3): **diktálás Ctrl+Alt+D-vel** bármelyik programba, és **hangasszisztens „Figyelj”-re** (Claude válaszol, hangosan; ki/be: Ctrl+Alt+F vagy a tálcamenü) |
+| `voice` | **magyar beszédfelismerés** helyben (whisper large-v3): **diktálás Ctrl+Alt+D-vel** bármelyik programba, és **hangasszisztens „Figyelj”-re** (Claude válaszol, hangosan; ki/be: Ctrl+Alt+F vagy a tálcamenü); **Jarvis-ablak**: arany 3D pixelgömb, ami beszél, kiírja a futó eszközt, kivetíti a képeket, állapotjelentést ad, gépelve is kérdezhető, és magától jelez |
 | `system` | **a gép kezelése**: weboldal, fájl, mappa vagy program megnyitása név alapján (Start menü, ékezet nélkül is), **hangerő**, leállítás/újraindítás/alvás/zárolás (jóváhagyással) – így a hangasszisztens végre is hajtja a kérést |
 | `look` | programok és weboldalak megnyitása, kiolvasása, kattintás (web, Windows, OCR, helyi képi modell) |
 

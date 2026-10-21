@@ -13,6 +13,7 @@ import ctypes
 import json
 import os
 import re
+import shutil
 import subprocess
 import threading
 import time
@@ -246,6 +247,47 @@ def system_apps(query: str = "", limit: int = 80) -> dict:
     out = {"ok": True, "n": len(names), "apps": names[:limit]}
     if len(names) > limit:
         out["more"] = len(names) - limit
+    return out
+
+
+def _gpu() -> dict | None:
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return None
+    try:
+        r = subprocess.run([exe, "--query-gpu=name,utilization.gpu,temperature.gpu,memory.used,memory.total",
+                            "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=5,
+                           creationflags=NOWIN)
+        name, util, temp, used, total = [x.strip() for x in r.stdout.splitlines()[0].split(",")]
+        return {"name": name, "pct": int(util), "temp_c": int(temp), "mem_pct": round(100 * int(used) / int(total))}
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError, ZeroDivisionError):
+        return None
+
+
+def _online() -> bool:
+    import socket
+    try:
+        with socket.create_connection(("1.1.1.1", 53), timeout=1.0):
+            return True
+    except OSError:
+        return False
+
+
+@tool
+def system_status() -> dict:
+    """Gép állapota: CPU, memória, GPU (terhelés, hőfok), akku, C: szabad hely, internet, üzemidő."""
+    import psutil
+    out = {"ok": True, "cpu_pct": round(psutil.cpu_percent(interval=0.4)), "ram_pct": round(psutil.virtual_memory().percent)}
+    g = _gpu()
+    if g:
+        out["gpu"] = g
+    b = psutil.sensors_battery()
+    if b is not None:
+        out["battery"] = {"pct": round(b.percent), "plugged": bool(b.power_plugged)}
+    du = psutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\")
+    out["disk_c"] = {"free_gb": round(du.free / 2**30), "pct": round(du.percent)}
+    out["online"] = _online()
+    out["uptime_h"] = round((time.time() - psutil.boot_time()) / 3600, 1)
     return out
 
 

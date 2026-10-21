@@ -19,7 +19,7 @@ from faster_whisper import WhisperModel  # noqa: E402
 from openwakeword.utils import AudioFeatures  # noqa: E402
 
 rng = np.random.default_rng(123)  # más mag, mint a tanításnál
-det = wt.Detector(HERE.parent / "models" / "figyelj.npz")
+det = wt.Detector(wt.model_path("figyelj"))
 thr = float(sys.argv[1]) if len(sys.argv) > 1 else det.threshold
 VERIFY = "--verify" in sys.argv
 small = WhisperModel("base", device="cpu", compute_type="int8") if VERIFY else None

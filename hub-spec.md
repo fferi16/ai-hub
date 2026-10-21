@@ -139,6 +139,18 @@ A részletes leírás a `look-spec.md` fájlban van. Eszközként:
   tálcamenü pipa, `voice_dictation(action="wake_on"/"wake_off")`, hanggal „Figyelj, ne figyelj / hallgass el”; kikapcsolva
   a mikrofont is elengedi (a Ctrl+Alt+D diktálás megy); párbeszédben „elég / vége / mégse / zárd be” lezárja a beszélgetést;
   a whisper csend/zaj-hallucinációi („Köszönöm, hogy megnéztétek”) eldobva; a beszélgetés végén mély csippanás
+  **Jarvis mód (2026-10-21):** `jarvis.py` – keret nélküli, mindig felül lévő ablak: arany holografikus 3D gömb
+  (~10 000 izzó pixel, numpy-vetítés + izzás), tétlenül finoman lélegzik, beszéd közben a felolvasott hang valódi
+  hangerő-burkolójára (`hud.envelope`) mozog és véletlenszerűen forog; egérrel forgatható, görgővel méretezhető
+  (`"jarvis_size"`), pixeles felirat a gömbön (állapot, hallott kérés, futó eszköz, kimondott mondat, óra), naplópanel
+  (eszközhívás kódként), programindításkor a program ikonja (IShellItemImageFactory), állapotjelentés-ívek
+  (`system_status`), hologram-kivetítés (eszköz által adott kép arany keretben), kattintásra hallgat, gépelt kérés
+  (néma válasz, 🔊 kapcsolóval felolvasva). Események: `hud.py` UDP 127.0.0.1:8771 (→ ablak) és :8772 (→ diktáló).
+  Gyors út (`quick.py`): megnyitás, hangerő, idő/dátum, állapotjelentés és protokollok (`"protocols"`) helyben,
+  a Hubon át, a Claude nélkül; ami nem biztos, a Claude-hoz megy. Magától szól (`"proactive"`): akku, lemez,
+  memória, GPU-hőfok, internet, 2 percnél hosszabb munkák vége; csendes órákban (`"quiet_hours": "22-7"`) és
+  kikapcsolt figyelésnél csak a gömb jelez. Jarvis-hangnem: `"persona": "jarvis"`. Néma próba:
+  `plugins\voice\tests\jarvis_demo.py`
 - **Kész (2026-10-20):** `system` – hogy a hangasszisztens (amely csak hub-eszközöket kap) végre is hajtsa a kéréseket:
   `system_open` (act: URL/domain → alapértelmezett böngésző; fájl/mappa → társított program; programnév → Start menü:
   Get-StartApps + .lnk, kis/nagybetű és ékezet nélkül; magyar becenevek: böngésző, jegyzettömb, számológép, fájlkezelő,

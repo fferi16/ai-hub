@@ -1,6 +1,7 @@
 """Saját ébresztőszó-modell tanítása az openWakeWord hangbeágyazásain (a „Hey Google"-féle megoldás kicsiben).
 
-    python wake_train.py [szó=figyelj]      → plugins/voice/models/<szó>.npz (+ kiértékelés a kimeneten)
+    python wake_train.py [szó=figyelj]      → out/voice/models/<szó>.npz (+ kiértékelés a kimeneten)
+    (saját hangminták nélkül – az általános, repóban tartott modell – plugins/voice/models/<szó>.npz)
 
 Pozitív minták: a szó gépi hangon (Windows Szabolcs) sokféle tempóval/hangmagassággal, és ha vannak,
 a felhasználó saját felvételei (out/voice/enroll/*.wav – voice_enroll készíti) – ezek a legértékesebbek.
@@ -21,7 +22,8 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-MODELS = HERE / "models"
+MODELS = HERE / "models"                      # az általános modell (a repóban, saját hang nélkül)
+USER_MODELS = ROOT / "out" / "voice" / "models"  # a felhasználó hangjára tanított modell (nem kerül a repóba)
 ENROLL = ROOT / "out" / "voice" / "enroll"
 SR, WIN = 16000, 32000            # 2 s-os ablak = 16 beágyazási keret
 rng = np.random.default_rng(7)
@@ -329,16 +331,24 @@ def train(word: str, rounds: int = 2) -> dict:
     if len(wrong):
         print(f"  téves: {[(kte[i], round(float(p[i]), 2)) for i in wrong]}", flush=True)
     thr, rec, far = best or (0.9, None, None)
-    MODELS.mkdir(parents=True, exist_ok=True)
-    out = MODELS / f"{word}.npz"
+    n_user = len(list(ENROLL.glob("*.wav"))) if ENROLL.is_dir() else 0
+    folder = USER_MODELS if n_user else MODELS
+    folder.mkdir(parents=True, exist_ok=True)
+    out = folder / f"{word}.npz"
     np.savez(out, mean=sc.mean_, scale=sc.scale_, W0=clf.coefs_[0], b0=clf.intercepts_[0], W1=clf.coefs_[1],
              b1=clf.intercepts_[1], threshold=np.array(thr),
              meta=np.array(json.dumps({"word": word, "trained": time.strftime("%Y-%m-%d %H:%M"),
                                        "positives": int((y == 1).sum()), "negatives": int((y == 0).sum()),
-                                       "user_samples": len(list(ENROLL.glob('*.wav'))) if ENROLL.is_dir() else 0})))
+                                       "user_samples": n_user})))
     return {"model": str(out), "threshold": round(thr, 2), "recall": round(rec, 3) if rec is not None else None,
             "false_accept": round(far, 4) if far is not None else None, "test_pos": int((yte == 1).sum()),
             "test_neg": int((yte == 0).sum())}
+
+
+def model_path(word: str) -> Path:
+    """A használandó modell: a saját hangra tanított, ha van, különben az általános."""
+    user = USER_MODELS / f"{word}.npz"
+    return user if user.exists() else MODELS / f"{word}.npz"
 
 
 class Detector:

@@ -177,7 +177,8 @@ def voice_enroll(action: str = "record", count: int = 10, word: str = "") -> dic
     sys.path.insert(0, str(HERE))
     word = (word or _cfg().get("wake", "figyelj")).strip().lower()
     have = sorted(ENROLL.glob("*.wav")) if ENROLL.is_dir() else []
-    model = HERE / "models" / f"{word}.npz"
+    import wake_train
+    model = wake_train.model_path(word)
     if action == "status":
         out = {"ok": True, "word": word, "samples": len(have), "training": _train_running(),
                "engine": "gyors" if _state().get("engine") == "gyors" else "whisper"}
